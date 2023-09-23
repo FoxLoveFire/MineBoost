@@ -1299,7 +1299,7 @@ void Game::shutdown()
 		clouds->drop();
 
 	if (gui_chat_console)
-		delete gui_chat_console;
+		 gui_chat_console->drop();
 
 	if (sky)
 		sky->drop();

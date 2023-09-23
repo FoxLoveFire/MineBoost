@@ -47,13 +47,7 @@ ChatBuffer::ChatBuffer(u32 scrollback):
 		}
 	}
 }
-ChatBuffer::~ChatBuffer()
-{
-	m_unformatted.clear();
-	m_formatted.clear();
-	m_scroll = 0;
-	m_lines_modified = true;
-}
+
 void ChatBuffer::addLine(const std::wstring &name, const std::wstring &text)
 {
 	m_lines_modified = true;

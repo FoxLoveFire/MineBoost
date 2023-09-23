@@ -2524,7 +2524,7 @@ bool Server::addMediaFile(const std::string &filename,
 	const char *supported_ext[] = {
 		".png", ".jpg", ".bmp", ".tga",
 		".ogg",
-		".x", ".b3d", ".obj", ".dae",
+		".x", ".b3d", ".obj",".dae",
 		// Custom translation file format
 		".tr",
 		NULL

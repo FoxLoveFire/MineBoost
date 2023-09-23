@@ -70,13 +70,14 @@ struct ChatFormattedLine
 	std::vector<ChatFormattedFragment> fragments;
 	// true if first line of one formatted ChatLine
 	bool first;
+	
 };
 
 class ChatBuffer
 {
 public:
 	ChatBuffer(u32 scrollback);
-	~ChatBuffer();
+	~ChatBuffer() = default;
 
 	// Append chat line
 	// Removes oldest chat line if scrollback size is reached
