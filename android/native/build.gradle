@@ -1,0 +1,74 @@
+apply plugin: 'com.android.library'
+apply plugin: 'de.undercouch.download'
+
+android {
+	compileSdkVersion 33
+	buildToolsVersion '33.0.2'
+	ndkVersion "$ndk_version"
+	defaultConfig {
+		minSdkVersion 21
+		targetSdkVersion 33
+		externalNativeBuild {
+			ndkBuild {
+				arguments '-j' + Runtime.getRuntime().availableProcessors(),
+						"versionMajor=${versionMajor}",
+						"versionMinor=${versionMinor}",
+						"versionPatch=${versionPatch}",
+						"versionExtra=${versionExtra}",
+						"developmentBuild=${developmentBuild}"
+			}
+		}
+	}
+
+	externalNativeBuild {
+		ndkBuild {
+			path file('jni/Android.mk')
+		}
+	}
+
+	// supported architectures
+	splits {
+		abi {
+			enable true
+			reset()
+			include 'armeabi-v7a', 'arm64-v8a', 'x86', 'x86_64'
+		}
+	}
+
+	buildTypes {
+		release {
+			externalNativeBuild {
+				ndkBuild {
+					arguments 'NDEBUG=1'
+				}
+			}
+
+			ndk {
+				debugSymbolLevel 'SYMBOL_TABLE'
+			}
+		}
+	}
+}
+
+// get precompiled deps
+task downloadDeps(type: Download) {
+	def depsDir = new File(buildDir.parent, 'deps')
+	def depsZip = new File(buildDir, 'deps.zip')
+
+	src 'https://github.com/minetest/minetest_android_deps/releases/download/latest/deps.zip'
+	dest depsZip
+	overwrite false
+
+	task getDeps(dependsOn: downloadDeps, type: Copy) {
+		depsDir.mkdir()
+		from zipTree(depsZip)
+		into depsDir
+		doFirst { logger.lifecycle('Extracting to {}', depsDir) }
+	}
+}
+
+preBuild.dependsOn getDeps
+
+clean {
+	delete new File(buildDir.parent, 'deps')
+}
