@@ -1659,7 +1659,9 @@ bool Client::getChatMessage(std::wstring &res)
 	m_chat_queue.pop();
 
 	res = L"";
-
+	std::wstring msg;
+	msg = L"Client: CHAT:"+chatMessage->message;
+	actionstream<<wide_to_utf8(msg)<<std::endl;
 	switch (chatMessage->type) {
 		case CHATMESSAGE_TYPE_RAW:
 		case CHATMESSAGE_TYPE_ANNOUNCE:
