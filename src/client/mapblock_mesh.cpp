@@ -90,7 +90,12 @@ static u8 getInteriorLight(enum LightBank bank, MapNode n, s32 increment,
 {
 	u8 light = n.getLight(bank, ndef->getLightingFlags(n));
 	light = rangelim(light + increment, 0, LIGHT_SUN);
-	return decode_light(light);
+	if(g_settings->getBool("night")){
+		return decode_light(255);
+	}
+	else{
+		return decode_light(light);
+	}
 }
 
 /*
@@ -126,7 +131,12 @@ static u8 getFaceLight(enum LightBank bank, MapNode n, MapNode n2, const NodeDef
 	if(light_source > light)
 		light = light_source;
 
-	return decode_light(light);
+	if(g_settings->getBool("night")){
+		return decode_light(255);
+	}
+	else{
+		return decode_light(light);
+	}
 }
 
 /*

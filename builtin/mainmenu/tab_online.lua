@@ -97,7 +97,8 @@ local function get_formspec(tabview, name, tabdata)
 		"label[2.875,0;" .. fgettext("Password") .. "]" ..
 		"field[0.25,0.2;2.625,0.75;te_name;;" .. core.formspec_escape(core.settings:get("name")) .. "]" ..
 		"pwdfield[2.875,0.2;2.625,0.75;te_pwd;]" ..
-		"container_end[]" ..
+		"container_end[]" .. 
+		"tableoptions[highlight=#ABCDEF75;background=#00000055;border=false]"..
 
 		-- Connect
 		"button[3,6;2.5,0.75;btn_mp_login;" .. fgettext("Login") .. "]"

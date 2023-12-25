@@ -1,19 +1,20 @@
 core.cheats = {
-	["MineBoost"] = {
+    ["MineBoost"] = {
 		["Fast Place"] = "fast_place",
 		["Node Stroker"] = "nodestrok",
 		["OptifineHUD"] = "optifine_hud",
 		["Build inside player"] = "enable_build_where_you_stand",
 		["Particles"] = "particles",
+		["Fullbright"] = "night",
+		
  	},
- 	["Settings"] = {
+    ["Settings"] = {
  		["Autojump"] = "autojump",
  		["Autoforward"] = "continuous_forward",
  		["Pitch move"] = "pitch_move",
  		["Fly"] = "free_move",
  		["Noclip"] = "noclip",
  		["Fast Move"] = "fast_move",
- 		["Show debug"] = "show_minimal_debug",
     },
     ["Graphics"] = {
     	["3D clouds"] = "enable_3d_clouds",
@@ -36,16 +37,19 @@ minetest.register_chatcommand("particles", {
         minetest.settings:set_bool("particles",  not particles)
     end
 })
+
 function register_hits()
 	if not minetest.localplayer then
 		return false
 	end
     if minetest.localplayer:get_control().dig and not lmbpress then
         lmbpress = true
-        local player_pos = core.camera:get_pos()
-        local player_dir = core.camera:get_look_dir()
-        local raycast = minetest.raycast(player_pos, vector.add(player_pos, vector.multiply(player_dir, 4)), true, false)
-        local textures = "hit.png"
+	local set = {
+	    player_pos = core.camera:get_pos(),
+	    player_dir = core.camera:get_look_dir(),
+	    textures = "hit.png",
+	}
+        local raycast = minetest.raycast(set.player_pos, vector.add(set.player_pos, vector.multiply(set.player_dir, 4)), true, false)
         for pointed_thing in raycast do
             local new_pos = vector.add(pointed_thing.intersection_point, vector.new(-0.2, -0.4, -0.2))
             local other_pos = vector.add(pointed_thing.intersection_point, vector.new(0.2, 0.4, 0.2))
@@ -53,7 +57,7 @@ function register_hits()
                 minetest.add_particlespawner({
                     amount = tonumber(minetest.settings:get("particle_amount")),
                     time = 0.1,
-                    minpos = new_pos,
+                    minpos = new_pos, 
                     maxpos = other_pos,
                     minvel = {x = -1, y = -2, z = -1},
                     maxvel = {x = 1, y = 2, z = 1},
@@ -67,7 +71,7 @@ function register_hits()
                     collision_removal = false,
                     object_collision = false,
                     vertical = false,
-                    texture = textures
+                    texture = set.textures
                 })
                 break
             end

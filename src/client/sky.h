@@ -114,7 +114,6 @@ public:
 	void addTextureToSkybox(const  std::string &texture, int material_id,
 		ITextureSource *tsrc);
 	const video::SColorf &getCurrentStarColor() const { return m_star_color; }
-
 private:
 	aabb3f m_box;
 	video::SMaterial m_materials[SKY_MATERIAL_COUNT];
@@ -176,6 +175,8 @@ private:
 	video::SColor m_bgcolor;
 	video::SColor m_skycolor;
 	video::SColorf m_cloudcolor_f;
+	
+	std::string arr[6] = {"top.jpg", "bottom.jpg", "east.jpg", "west.jpg", "south.jpg", "north.jpg"};
 
 	// pure white: becomes "diffuse light component" for clouds
 	video::SColorf m_cloudcolor_day_f = video::SColorf(1, 1, 1, 1);

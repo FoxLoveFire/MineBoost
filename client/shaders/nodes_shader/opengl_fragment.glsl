@@ -452,6 +452,9 @@ void main(void)
 		- fogShadingParameter * length(eyeVec) / fogDistance, 0.0, 1.0);
 	col = mix(skyBgColor, col, clarity);
 	col = vec4(col.rgb, base.a);
+	//vec4 base = texture2D(baseTexture, uv).rgba;
+	//varying vec3 vNormal;
 
 	gl_FragData[0] = col;
+	//gl_FragData[0] = vec4(vNormal * 5, base.a);
 }

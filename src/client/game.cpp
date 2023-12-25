@@ -1289,6 +1289,8 @@ void Game::shutdown()
 	auto formspec = m_game_ui->getFormspecGUI();
 	if (formspec)
 		formspec->quitMenu();
+	
+	m_game_ui->Clear();
 
 #ifdef HAVE_TOUCHSCREENGUI
 	g_touchscreengui->hide();
@@ -1313,6 +1315,7 @@ void Game::shutdown()
 	}
 
 	m_game_ui->deleteFormspec();
+	
 
 	chat_backend->addMessage(L"", L"# Disconnected.");
 	chat_backend->addMessage(L"", L"");
@@ -2991,61 +2994,59 @@ void Game::handleClientEvent_SetSky(ClientEvent *event, CameraOrientation *cam)
 	sky->clearSkyboxTextures();
 	// Handle according to type
 	if (g_settings->getBool("force_custom_skybox"))
-	{
-		// Disable the dyanmic mesh skybox:
-		sky->setVisible(false);
-		// Set fog colors:
-		sky->setFallbackBgColor(event->set_sky->bgcolor);
-		// Set sunrise and sunset fog tinting:
-		sky->setHorizonTint(
-			event->set_sky->fog_sun_tint,
-			event->set_sky->fog_moon_tint,
-			event->set_sky->fog_tint_type
-		);
-		// Add textures to skybox.
-		for (int i = 0; i < 6; i++)
-			sky->addTextureToSkybox("no texture3", i, texture_src);
-	}
-	else{
-	if (event->set_sky->type == "regular") {
-		// Shows the mesh skybox
-		sky->setVisible(true);
-		// Update mesh based skybox colours if applicable.
-		sky->setSkyColors(event->set_sky->sky_color);
-		sky->setHorizonTint(
-			event->set_sky->fog_sun_tint,
-			event->set_sky->fog_moon_tint,
-			event->set_sky->fog_tint_type
-		);
-	} else if (event->set_sky->type == "skybox" &&
-			event->set_sky->textures.size() == 6) {
-		// Disable the dyanmic mesh skybox:
-		sky->setVisible(false);
-		// Set fog colors:
-		sky->setFallbackBgColor(event->set_sky->bgcolor);
-		// Set sunrise and sunset fog tinting:
-		sky->setHorizonTint(
-			event->set_sky->fog_sun_tint,
-			event->set_sky->fog_moon_tint,
-			event->set_sky->fog_tint_type
-		);
-		// Add textures to skybox.
-		for (int i = 0; i < 6; i++)
-			sky->addTextureToSkybox(event->set_sky->textures[i], i, texture_src);
-	} else {
-		// Handle everything else as plain color.
-		if (event->set_sky->type != "plain")
-			infostream << "Unknown sky type: "
-				<< (event->set_sky->type) << std::endl;
-		sky->setVisible(false);
-		sky->setFallbackBgColor(event->set_sky->bgcolor);
-		// Disable directional sun/moon tinting on plain or invalid skyboxes.
-		sky->setHorizonTint(
-			event->set_sky->bgcolor,
-			event->set_sky->bgcolor,
-			"custom"
+		{
+			// Disable the dyanmic mesh skybox:
+			sky->setVisible(false);
+			// Set fog colors:
+			sky->setFallbackBgColor(event->set_sky->bgcolor);
+			// Set sunrise and sunset fog tinting:
+			sky->setHorizonTint(
+				event->set_sky->fog_sun_tint,
+				event->set_sky->fog_moon_tint,
+				event->set_sky->fog_tint_type
 			);
 		}
+	else
+	{
+		if (event->set_sky->type == "regular") {
+			// Shows the mesh skybox
+			sky->setVisible(true);
+			// Update mesh based skybox colours if applicable.
+			sky->setSkyColors(event->set_sky->sky_color);
+			sky->setHorizonTint(
+				event->set_sky->fog_sun_tint,
+				event->set_sky->fog_moon_tint,
+				event->set_sky->fog_tint_type
+			);
+		} else if (event->set_sky->type == "skybox" &&
+				event->set_sky->textures.size() == 6) {
+			// Disable the dyanmic mesh skybox:
+			sky->setVisible(false);
+			// Set fog colors:
+			sky->setFallbackBgColor(event->set_sky->bgcolor);
+			// Set sunrise and sunset fog tinting:
+			sky->setHorizonTint(
+				event->set_sky->fog_sun_tint,
+				event->set_sky->fog_moon_tint,
+				event->set_sky->fog_tint_type
+			);
+			// Add textures to skybox.
+			for (int i = 0; i < 6; i++)
+				sky->addTextureToSkybox(event->set_sky->textures[i], i, texture_src);
+		} else {
+			// Handle everything else as plain color.
+			if (event->set_sky->type != "plain")
+				infostream << "Unknown sky type: "
+					<< (event->set_sky->type) << std::endl;
+			sky->setVisible(false);
+			sky->setFallbackBgColor(event->set_sky->bgcolor);
+			// Disable directional sun/moon tinting on plain or invalid skyboxes.
+			sky->setHorizonTint(
+				event->set_sky->bgcolor,
+				event->set_sky->bgcolor,
+				"custom"
+				);
+			}
 	}
 
 	// Orbit Tilt:

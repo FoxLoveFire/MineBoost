@@ -313,11 +313,14 @@ void set_default_settings()
 	settings->setDefault("fast_place", "false");
 	settings->setDefault("nodestrok", "false");
 	settings->setDefault("optifine_hud", "true");
+	settings->setDefault("night", "false");
 		//Sky 
 	settings->setDefault("custom_skybox", "false");
 	settings->setDefault("display_sunrise", "false");
 	settings->setDefault("force_custom_skybox", "false");
 	settings->setDefault("force_render_skybox", "true");
+	settings->setDefault("sun", "true");
+	settings->setDefault("starts", "true");
 #ifdef HAVE_TOUCHSCREENGUI
 	settings->setDefault("autojump", "true");
 #else

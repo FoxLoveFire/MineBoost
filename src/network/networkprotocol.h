@@ -217,7 +217,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 		[scheduled bump for 5.7.0]
 */
 
-#define LATEST_PROTOCOL_VERSION 42
+#define LATEST_PROTOCOL_VERSION 43
 #define LATEST_PROTOCOL_VERSION_STRING TOSTRING(LATEST_PROTOCOL_VERSION)
 
 // Server's supported network protocol range

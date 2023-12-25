@@ -1652,7 +1652,7 @@ void Server::SendAddParticleSpawner(session_t peer_id, u16 protocol_version,
 
 	pkt << p.amount << p.time;
 
-	if (protocol_version >= 42) {
+	if (protocol_version >= 43) {
 		// Serialize entire thing
 		std::ostringstream os(std::ios_base::binary);
 		p.pos.serialize(os);

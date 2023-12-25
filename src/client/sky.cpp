@@ -34,28 +34,6 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "camera.h" // CameraModes
 
 using namespace irr::core;
-std::string top = "top.jpg";
-std::string bottom = "bottom.jpg";
-std::string east = "east.jpg";
-std::string west = "west.jpg";
-std::string south = "south.jpg";
-std::string north = "north.jpg";
-std::string get_texture(int id)
-{
-	if (id==0)
-		return top;
-	if (id==1)
-		return bottom;
-	if (id==2)
-		return east;
-	if (id==3)
-		return west;
-	if (id==4)
-		return south;
-	if (id==5)
-		return north;
-	return "default_stone.png";
-}
 
 static video::SMaterial baseMaterial()
 {
@@ -108,19 +86,25 @@ Sky::Sky(s32 id, RenderingEngine *rendering_engine, ITextureSource *tsrc, IShade
 	m_materials[2].setTexture(0, tsrc->getTextureForMesh("sunrisebg.png"));
 	m_materials[2].MaterialType = video::EMT_TRANSPARENT_ALPHA_CHANNEL;
 
+
 	setSunTexture(m_sun_params.texture, m_sun_params.tonemap, tsrc);
 
+
+
 	setMoonTexture(m_moon_params.texture, m_moon_params.tonemap, tsrc);
+
+
+
 	//Custom skybox 
-	if (g_settings->getBool("custom_skybox") == true)
+	if (g_settings->getBool("custom_skybox"))
 	{
 		for (int i = 5; i < 11; i++) {
 			m_visible = false;
 			m_materials[i] = baseMaterial();
 			m_materials[i].Lighting = true;
 			
-				m_sky_params.textures.emplace_back(get_texture(i-5));
-				video::ITexture *result = tsrc->getTextureForMesh(get_texture(i-5));
+				m_sky_params.textures.emplace_back(arr[i - 5]);
+				video::ITexture *result = tsrc->getTextureForMesh(arr[i - 5]);
 				m_materials[i] = baseMaterial();
 				m_materials[i].setTexture(0, result);
 				m_materials[i].MaterialType = video::EMT_SOLID;
@@ -139,7 +123,9 @@ Sky::Sky(s32 id, RenderingEngine *rendering_engine, ITextureSource *tsrc, IShade
 	m_directional_colored_fog = g_settings->getBool("directional_colored_fog");
 	m_sky_params.body_orbit_tilt = g_settings->getFloat("shadow_sky_body_orbit_tilt", -60., 60.);
 
-	setStarCount(1000);
+	if(g_settings->getBool("starts")){
+		setStarCount(1000);
+	}
 }
 
 void Sky::OnRegisterSceneNode()
@@ -300,11 +286,11 @@ void Sky::render()
 
 		if (g_settings->getBool("display_sunrise"))
 		{
-			m_sun_params.sunrise_visible = false;
+			m_sun_params.sunrise_visible = true;
 		}
 		else 
 		{
-			m_sun_params.sunrise_visible = true;
+			m_sun_params.sunrise_visible = false;
 		}
 		if (m_sun_params.sunrise_visible) {
 			driver->setMaterial(m_materials[2]);
@@ -946,8 +932,8 @@ void Sky::addTextureToSkybox(const std::string& texture, int material_id, ITextu
     if (g_settings->getBool("force_custom_skybox"))
     {
 		try{
-			m_sky_params.textures.emplace_back(get_texture(material_id));
-        	video::ITexture* result = tsrc->getTextureForMesh(get_texture(material_id));
+			m_sky_params.textures.emplace_back(arr[material_id]);
+        	video::ITexture* result = tsrc->getTextureForMesh(arr[material_id]);
         	m_materials[material_id + 5] = baseMaterial();
         	m_materials[material_id + 5].setTexture(0, result);
         	m_materials[material_id + 5].MaterialType = video::EMT_SOLID;

@@ -17,10 +17,9 @@
 
 -- https://github.com/orgs/minetest/teams/engine/members
 local hello = {
-     "This client is made for my friends, say hello to PadrePio,", 
-     "MongooseLord, ThunderDragonZ, Konstantina, Kartoshker",
-     "and others friends",
-     "FrediTheFish a one main developer",
+	"Maintainer_ is main developer",
+	"FrediTheFish is idea creation assistant",
+	"NanoWolf4 is helper",
 }
 local core_developers = {
 	"Perttu Ahola (celeron55) <celeron55@gmail.com> [Project founder]",
@@ -133,13 +132,8 @@ return {
 
 		local credit_list = {}
 		table.insert_all(credit_list, {
-			core.colorize("#000", "Dedication of the current release"),
-			"The 5.7.0 release is dedicated to the memory of",
-			"Minetest developer Jude Melton-Houghton (TurkeyMcMac)",
-			"who died on February 1, 2023.",
-			"Our thoughts are with his family and friends.",
 			"",
-			core.colorize("#ff0", fgettext("From the creator"))
+			core.colorize("#ff0", fgettext("Creators of MineBoost"))
 		})
 		prepare_credits(credit_list, hello)
 		table.insert_all(credit_list, {

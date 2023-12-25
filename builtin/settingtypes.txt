@@ -513,6 +513,10 @@ fast_place (Fastplace) bool false
 nodestrok (Node stroker) bool false
 #    HUD
 optifine_hud (Optifine HUD) bool true
+#   Sun
+sun (Sun texture enable) bool true
+#  Starts
+starts (Starts) bool true
 
 
 

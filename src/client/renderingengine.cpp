@@ -36,6 +36,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "gettext.h"
 #include "filesys.h"
 #include "../gui/guiSkin.h"
+#include "gameui.h"
 
 #if !defined(_WIN32) && !defined(__APPLE__) && !defined(__ANDROID__) && \
 		!defined(SERVER) && !defined(__HAIKU__)
@@ -55,7 +56,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 RenderingEngine *RenderingEngine::s_singleton = nullptr;
 const video::SColor RenderingEngine::MENU_SKY_COLOR = video::SColor(255, 140, 186, 250);
 const float RenderingEngine::BASE_BLOOM_STRENGTH = 1.0f;
-
+GameUI *ui;
 
 static gui::GUISkin *createSkin(gui::IGUIEnvironment *environment,
 		gui::EGUI_SKIN_TYPE type, video::IVideoDriver *driver)
@@ -77,7 +78,6 @@ static gui::GUISkin *createSkin(gui::IGUIEnvironment *environment,
 
 	return skin;
 }
-
 
 RenderingEngine::RenderingEngine(IEventReceiver *receiver)
 {
@@ -450,10 +450,19 @@ void RenderingEngine::draw_load_screen(const std::wstring &text,
 		g_menuclouds->render();
 		get_video_driver()->beginScene(true, true, RenderingEngine::MENU_SKY_COLOR);
 		g_menucloudsmgr->drawAll();
-	} else if (sky)
-		get_video_driver()->beginScene(true, true, RenderingEngine::MENU_SKY_COLOR);
-	else
-		get_video_driver()->beginScene(true, true, video::SColor(255, 0, 0, 0));
+	}
+	else{
+		video::ITexture* texture = tsrc->getTexture(("menu_bg.png"));
+		const auto &bg_size = texture->getSize();
+		auto screensize = get_video_driver()->getScreenSize();
+		draw2DImageFilterScaled(get_video_driver(), texture,
+			core::rect<s32>(0, 0,
+			 bg_size.Width + (screensize.Width - bg_size.Width),
+			 bg_size.Height + (screensize.Height - bg_size.Height)),
+			core::rect<s32>(0, 0, bg_size.Width, bg_size.Height),
+			0, 0, true);
+		//get_video_driver()->beginScene(true, true, video::SColor(250, 0, 0, 0));
+	}
 
 	// draw progress bar
 	if ((percent >= 0) && (percent <= 100)) {

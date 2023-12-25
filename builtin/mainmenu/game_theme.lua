@@ -182,15 +182,15 @@ end
 --------------------------------------------------------------------------------
 function mm_game_theme.set_dirt_bg()
 	if mm_game_theme.texturepack ~= nil then
-		local path = mm_game_theme.texturepack .. DIR_DELIM .."default_dirt.png"
-		if core.set_background("background", path, true, 128) then
+		local path = mm_game_theme.texturepack .. DIR_DELIM .."default_dirt.jpg"
+		if core.set_background("background", path, false, 128) then
 			return true
 		end
 	end
 
 	-- Use universal fallback texture in textures/base/pack
-	local minimalpath = defaulttexturedir .. "menu_bg.png"
-	core.set_background("background", minimalpath, true, 128)
+	local minimalpath = defaulttexturedir .. "menu_bg.jpg"
+	core.set_background("background", minimalpath, false, 128)
 end
 
 --------------------------------------------------------------------------------
