@@ -32,6 +32,29 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "renderingengine.h"
 #include "version.h"
 
+std::string get_irrlicht_device(){
+	
+	switch (RenderingEngine::get_raw_device()->getType()) {
+			case EIDT_WIN32: 
+				return "WIN32";
+			case EIDT_X11: 
+				return "X11";
+			case EIDT_OSX: 
+				return "OSX";
+			case EIDT_SDL: 
+				return "SDL";
+			case EIDT_ANDROID: 
+				return "ANDROID";
+			default: 
+				return "Unknown";
+	}
+}
+
+std::string get_videoDriver(){
+
+	auto type = RenderingEngine::get_video_driver()->getName();
+	return wide_to_utf8(type).c_str();
+}
 
 inline static const char *yawToDirectionString(int yaw)
 {
@@ -104,8 +127,6 @@ void GameUI::update(const RunStats &stats, Client *client, MapDrawControl *draw_
 	v2u32 screensize = RenderingEngine::getWindowSize();
 	const int fps_limit = (g_settings->getU64("fps_max"));
 	LocalPlayer *player = client->getEnv().getLocalPlayer();
-	auto  drivertype = RenderingEngine::get_video_driver()->getDriverType();
-	std::string drivertypel = (RenderingEngine::getVideoDriverInfo(drivertype).name.c_str());
 	s32 minimal_debug_height = 0;
 
 	// Minimal debug text must only contain info that can't give a gameplay advantage
@@ -118,11 +139,12 @@ void GameUI::update(const RunStats &stats, Client *client, MapDrawControl *draw_
 		std::ostringstream os(std::ios_base::binary);
 		os << std::fixed
 			<< PROJECT_NAME_C""  << g_version_hash << "[Minetest client]" << std::endl
-			<< "FPS: " << fps << "/" <<fps_limit << " Driver: "  << drivertypel
+			<< "FPS: " << fps << "/" <<fps_limit << " | Driver: "  << get_videoDriver()
 			<< std::setprecision(0) 
-			<< " | view range: "
+			<< " | View range: "
 			<< (draw_control->range_all ? "All" : itos(draw_control->wanted_range))
 			<< std::setprecision(2) << std::endl
+			<< "Irrlicht device: "<<get_irrlicht_device() << std::endl
 			<< "Coords:  " << (player_position.X / BS)
 			<< ", " << (player_position.Y / BS)
 			<< ", " << (player_position.Z / BS) << std::endl
@@ -240,7 +262,6 @@ void GameUI::setChatText(const EnrichedString &chat_text, u32 recent_chat_count)
 void GameUI::updateChatSize()
 {
 	// Update gui element size and position
-
 	const v2u32 &window_size = RenderingEngine::getWindowSize();
 
 	s32 chat_y = window_size.Y - 130 - m_guitext_chat->getTextHeight();
@@ -349,16 +370,27 @@ void GameUI::deleteFormspec()
 
 	m_formname.clear();
 }
+
 void GameUI::Clear()
 {
 	
-	if(m_guitext_chat)
-	{
+	if (m_guitext_chat)
 		m_guitext_chat->setText(L"");
-	}
-	if(m_guitext)
-	{
+	
+	if (m_guitext)
 		m_guitext->setText(L"");
-	}
+		
+	if (m_guitext2)
+		m_guitext2->setText(L"");
+	
+	if (m_guitext_info)
+		m_guitext_info->setText(L"");
+		
+	if (m_guitext_status)
+		m_guitext_status->setText(L"");
+		
+	if(m_guitext_profiler)
+		m_guitext_profiler->setText(L"");
+		
 }
 

@@ -4226,6 +4226,11 @@ void Game::updateFrame(ProfilerGraph *graph, RunStats *stats, f32 dtime,
 
 		runData.damage_flash -= 384.0f * dtime;
 	}
+		s32 chat_y = screensize.Y - 130;
+		video::SColor color(80, 200, 0, 0);
+		driver->draw2DRectangle(color, 
+					core::rect<s32>(10, chat_y, screensize.X - 20, 0),
+					NULL);
 
 	/*
 		==================== End scene ====================
