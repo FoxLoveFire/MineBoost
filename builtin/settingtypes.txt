@@ -63,6 +63,26 @@
 # There shouldn't be too much settings per category; settings that shouldn't be
 #  modified by the "average user" should be in (sub-)categories called "Advanced".
 
+[MineBoost]
+
+#    Force Custom Skybox
+force_custom_skybox (Force Custom Skybox) bool false
+#    Use Custom Skybox
+custom_skybox (Use Custom Skybox) bool true
+#    Display Sunrises
+display_sunrise (Display Sunrise) bool false
+#    Force Render Skybox
+force_render_skybox (Force Render Skybox) bool true
+#    Fastplace 
+fast_place (Fastplace) bool false
+#   Node stroker 
+nodestrok (Node stroker) bool false
+#    HUD
+function_hud (Function HUD) bool true
+#  Starts
+starts (Starts) bool true
+
+
 
 [Controls]
 
@@ -496,28 +516,6 @@ bloom_strength_factor (Bloom Strength Factor) float 1.0 0.1 10.0
 #    from the bright objects.
 #    Range: from 0.1 to 8, default: 1
 bloom_radius (Bloom Radius) float 1 0.1 8
-
-[*Fastest settings]
-
-#    Force Custom Skybox
-force_custom_skybox (Force Custom Skybox) bool false
-#    Use Custom Skybox
-custom_skybox (Use Custom Skybox) bool true
-#    Display Sunrises
-display_sunrise (Display Sunrise) bool false
-#    Force Render Skybox
-force_render_skybox (Force Render Skybox) bool true
-#    Fastplace 
-fast_place (Fastplace) bool false
-#   Node stroker 
-nodestrok (Node stroker) bool false
-#    HUD
-optifine_hud (Optifine HUD) bool true
-#   Sun
-sun (Sun texture enable) bool true
-#  Starts
-starts (Starts) bool true
-
 
 
 [*Audio]
@@ -2361,7 +2359,8 @@ keymap_toggle_profiler (Profiler toggle key) key KEY_F6
 
 #    Key for switching between first- and third-person camera.
 keymap_camera_mode (Toggle camera mode key) key KEY_KEY_C
-
+#    Key for fast settings menu
+keymap_toggle_render_menu (Toggle fast settting menu) key KEY_RSHIFT
 #    Key for increasing the viewing range.
 keymap_increase_viewing_range_min (View range increase key) key +
 

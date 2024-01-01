@@ -121,7 +121,7 @@ void set_default_settings()
 	settings->setDefault("keymap_toggle_hud", "KEY_F1");
 	settings->setDefault("keymap_toggle_chat", "KEY_F2");
 	settings->setDefault("keymap_toggle_fog", "KEY_F3");
-	settings->setDefault("keymap_toggle_optifine_menu", "KEY_RSHIFT");
+	settings->setDefault("keymap_toggle_render_menu", "KEY_RSHIFT");
 #if DEBUG
 	settings->setDefault("keymap_toggle_update_camera", "KEY_F4");
 #else
@@ -312,7 +312,7 @@ void set_default_settings()
 	//Fastest: 
 	settings->setDefault("fast_place", "false");
 	settings->setDefault("nodestrok", "false");
-	settings->setDefault("optifine_hud", "true");
+	settings->setDefault("function_hud", "true");
 	settings->setDefault("night", "false");
 		//Sky 
 	settings->setDefault("custom_skybox", "false");

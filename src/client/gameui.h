@@ -61,7 +61,7 @@ public:
 		bool show_minimal_debug = false;
 		bool show_basic_debug = false;
 		bool show_profiler_graph = false;
-		bool optifine_menu = false;
+		bool render_menu = false;
 	};
 
 	void init();
@@ -95,7 +95,7 @@ public:
 
 	void toggleChat(Client *client);
 	void toggleHud();
-	void toggleOptifineMenu();
+	void toggleRenderMenu();
 	void toggleProfiler();
 
 	GUIFormSpecMenu *&updateFormspec(const std::string &formname)

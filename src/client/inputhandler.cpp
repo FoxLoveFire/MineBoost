@@ -64,7 +64,7 @@ void KeyCache::populate()
 	key[KeyType::TOGGLE_HUD] = getKeySetting("keymap_toggle_hud");
 	key[KeyType::TOGGLE_CHAT] = getKeySetting("keymap_toggle_chat");
 	key[KeyType::TOGGLE_FOG] = getKeySetting("keymap_toggle_fog");
-	key[KeyType::TOGGLE_OPTIFINE_MENU] = getKeySetting("keymap_toggle_optifine_menu");
+	key[KeyType::TOGGLE_RENDER_MENU] = getKeySetting("keymap_toggle_render_menu");
 	key[KeyType::TOGGLE_UPDATE_CAMERA] = getKeySetting("keymap_toggle_update_camera");
 	key[KeyType::TOGGLE_DEBUG] = getKeySetting("keymap_toggle_debug");
 	key[KeyType::TOGGLE_PROFILER] = getKeySetting("keymap_toggle_profiler");

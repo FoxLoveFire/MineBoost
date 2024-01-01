@@ -22,19 +22,19 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "cpp_api/s_internal.h"
 #include "settings.h"
 
-ScriptApiCheatsCheat::ScriptApiCheatsCheat(
+ScriptApiFunctionFunctions::ScriptApiFunctionFunctions(
 		const std::string &name, const std::string &setting) :
 		m_name(name),
 		m_setting(setting), m_function_ref(0)
 {
 }
 
-ScriptApiCheatsCheat::ScriptApiCheatsCheat(const std::string &name, const int &function) :
+ScriptApiFunctionFunctions::ScriptApiFunctionFunctions(const std::string &name, const int &function) :
 		m_name(name), m_setting(""), m_function_ref(function)
 {
 }
 
-bool ScriptApiCheatsCheat::is_enabled()
+bool ScriptApiFunctionFunctions::is_enabled()
 {
 	try {
 		return !m_function_ref && g_settings->getBool(m_setting);
@@ -43,7 +43,7 @@ bool ScriptApiCheatsCheat::is_enabled()
 	}
 }
 
-void ScriptApiCheatsCheat::toggle(lua_State *L, int error_handler)
+void ScriptApiFunctionFunctions::toggle(lua_State *L, int error_handler)
 {
 	if (m_function_ref) {
 		lua_rawgeti(L, LUA_REGISTRYINDEX, m_function_ref);
@@ -52,47 +52,47 @@ void ScriptApiCheatsCheat::toggle(lua_State *L, int error_handler)
 		g_settings->setBool(m_setting, !is_enabled());
 }
 
-ScriptApiCheatsCategory::ScriptApiCheatsCategory(const std::string &name) : m_name(name)
+ScriptApiFunctionsCategory::ScriptApiFunctionsCategory(const std::string &name) : m_name(name)
 {
 }
 
-ScriptApiCheatsCategory::~ScriptApiCheatsCategory()
+ScriptApiFunctionsCategory::~ScriptApiFunctionsCategory()
 {
-	for (auto i = m_cheats.begin(); i != m_cheats.end(); i++)
+	for (auto i = m_function.begin(); i != m_function.end(); i++)
 		delete *i;
 }
 
-void ScriptApiCheatsCategory::read_cheats(lua_State *L)
+void ScriptApiFunctionsCategory::read_functions(lua_State *L)
 {
 	lua_pushnil(L);
 	while (lua_next(L, -2)) {
-		ScriptApiCheatsCheat *cheat = nullptr;
+		ScriptApiFunctionFunctions *function = nullptr;
 		std::string name = lua_tostring(L, -2);
 		if (lua_isstring(L, -1))
-			cheat = new ScriptApiCheatsCheat(name, lua_tostring(L, -1));
+			function = new ScriptApiFunctionFunctions(name, lua_tostring(L, -1));
 		else if (lua_isfunction(L, -1)) {
-			cheat = new ScriptApiCheatsCheat(
+			function = new ScriptApiFunctionFunctions(
 					name, luaL_ref(L, LUA_REGISTRYINDEX));
 			lua_pushnil(L);
 		}
-		if (cheat)
-			m_cheats.push_back(cheat);
+		if (function)
+			m_function.push_back(function);
 		lua_pop(L, 1);
 	}
 }
 
-ScriptApiCheats::~ScriptApiCheats()
+ScriptApiFunctions::~ScriptApiFunctions()
 {
-	for (auto i = m_cheat_categories.begin(); i != m_cheat_categories.end(); i++)
+	for (auto i = m_function_categories.begin(); i != m_function_categories.end(); i++)
 		delete *i;
 }
 
-void ScriptApiCheats::init_cheats()
+void ScriptApiFunctions::init_functions()
 {
 	SCRIPTAPI_PRECHECKHEADER
 
 	lua_getglobal(L, "core");
-	lua_getfield(L, -1, "cheats");
+	lua_getfield(L, -1, "functions");
 	if (!lua_istable(L, -1)) {
 		lua_pop(L, 2);
 		return;
@@ -100,18 +100,18 @@ void ScriptApiCheats::init_cheats()
 	lua_pushnil(L);
 	while (lua_next(L, -2)) {
 		if (lua_istable(L, -1)) {
-			ScriptApiCheatsCategory *category =
-					new ScriptApiCheatsCategory(lua_tostring(L, -2));
-			category->read_cheats(L);
-			m_cheat_categories.push_back(category);
+			ScriptApiFunctionsCategory *category =
+					new ScriptApiFunctionsCategory(lua_tostring(L, -2));
+			category->read_functions(L);
+			m_function_categories.push_back(category);
 		}
 		lua_pop(L, 1);
 	}
 	lua_pop(L, 2);
-	m_cheats_loaded = true;
+	m_function_loaded = true;
 }
 
-void ScriptApiCheats::toggle_cheat(ScriptApiCheatsCheat *cheat)
+void ScriptApiFunctions::toggle_func(ScriptApiFunctionFunctions *function)
 {
 	SCRIPTAPI_PRECHECKHEADER
 
@@ -119,5 +119,5 @@ void ScriptApiCheats::toggle_cheat(ScriptApiCheatsCheat *cheat)
 	int error_handler = lua_gettop(L) - 1;
 	lua_insert(L, error_handler);
 
-	cheat->toggle(L, error_handler);
+	function->toggle(L, error_handler);
 }

@@ -43,7 +43,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "filesys.h"
 #include "gameparams.h"
 #include "gettext.h"
-#include "cheatMenu.h"
+#include "fast_menu.h"
 #include "gui/guiChatConsole.h"
 #include "gui/guiFormSpecMenu.h"
 #include "gui/guiKeyChangeMenu.h"
@@ -957,7 +957,7 @@ private:
 	Sky *sky = nullptr;                         // Free using ->Drop()
 	Hud *hud = nullptr;
 	Minimap *mapper = nullptr;
-	Menu *optifine_menu = nullptr;
+	RenderMenu *render_menu = nullptr;
 
 	// Map server hud ids to client hud ids
 	std::unordered_map<u32, u32> m_hud_server_to_client;
@@ -1305,8 +1305,8 @@ void Game::shutdown()
 
 	if (sky)
 		sky->drop();
-	if (optifine_menu)
-		delete optifine_menu;
+	if (render_menu)
+		delete render_menu;
 
 	/* cleanup menus */
 	while (g_menumgr.menuCount() > 0) {
@@ -1561,10 +1561,10 @@ bool Game::initGui()
 		errorstream << *error_message << std::endl;
 		return false;
 	}
+	
+	render_menu = new RenderMenu(client);
 
-	optifine_menu= new Menu(client);
-
-	if(!optifine_menu){
+	if (!render_menu){
 		*error_message = "Could not allocate memory for cheat menu";
 		errorstream<<*error_message <<std::endl;
 		return false;
@@ -2031,15 +2031,15 @@ void Game::processUserInput(f32 dtime)
 void Game::processKeyInput()
 {
 	if (wasKeyDown(KeyType::SELECT_UP)) {
-		optifine_menu->selectUp();
+		render_menu->selectUp();
 	} else if (wasKeyDown(KeyType::SELECT_DOWN)) {
-		optifine_menu->selectDown();
+		render_menu->selectDown();
 	} else if (wasKeyDown(KeyType::SELECT_LEFT)) {
-		optifine_menu->selectLeft();
+		render_menu->selectLeft();
 	} else if (wasKeyDown(KeyType::SELECT_RIGHT)) {
-		optifine_menu->selectRight();
+		render_menu->selectRight();
 	} else if (wasKeyDown(KeyType::SELECT_CONFIRM)) {
-		optifine_menu->selectConfirm();
+		render_menu->selectConfirm();
 	}
 
 	if (wasKeyDown(KeyType::DROP)) {
@@ -2128,8 +2128,8 @@ void Game::processKeyInput()
 		m_game_ui->toggleChat(client);
 	} else if (wasKeyDown(KeyType::TOGGLE_FOG)) {
 		toggleFog();
-	} else if (wasKeyDown(KeyType::TOGGLE_OPTIFINE_MENU)) {
-		m_game_ui->toggleOptifineMenu();
+	} else if (wasKeyDown(KeyType::TOGGLE_RENDER_MENU)) {
+		m_game_ui->toggleRenderMenu();
 	} else if (wasKeyDown(KeyType::TOGGLE_UPDATE_CAMERA)) {
 		toggleUpdateCamera();
 	} else if (wasKeyDown(KeyType::TOGGLE_DEBUG)) {
@@ -2486,6 +2486,7 @@ void Game::toggleDebug()
 		m_game_ui->m_flags.show_profiler_graph = false;
 		draw_control->show_wireframe = false;
 		m_game_ui->showTranslatedStatusText("Debug info shown");
+		m_game_ui->m_flags.render_menu = false;
 	} else if (!m_game_ui->m_flags.show_profiler_graph && !draw_control->show_wireframe) {
 		if (has_basic_debug)
 			m_game_ui->m_flags.show_basic_debug = true;
@@ -3954,6 +3955,7 @@ void Game::handleDigging(const PointedThing &pointed, const v3s16 &nodepos,
 	camera->setDigging(0);  // Dig animation
 }
 
+
 void Game::updateFrame(ProfilerGraph *graph, RunStats *stats, f32 dtime,
 		const CameraOrientation &cam)
 {
@@ -4193,13 +4195,14 @@ void Game::updateFrame(ProfilerGraph *graph, RunStats *stats, f32 dtime,
 	bool draw_crosshair = (
 			(player->hud_flags & HUD_FLAG_CROSSHAIR_VISIBLE) &&
 			(camera->getCameraMode() != CAMERA_MODE_THIRD_FRONT));
+	
 #ifdef HAVE_TOUCHSCREENGUI
 	if (isNoCrosshairAllowed())
 		draw_crosshair = false;
 #endif
 	m_rendering_engine->draw_scene(skycolor, m_game_ui->m_flags.show_hud,
 			m_game_ui->m_flags.show_minimap, draw_wield_tool, draw_crosshair);
-
+	
 	/*
 		Profiler graph
 	*/
@@ -4208,13 +4211,15 @@ void Game::updateFrame(ProfilerGraph *graph, RunStats *stats, f32 dtime,
 	if (m_game_ui->m_flags.show_profiler_graph)
 		graph->draw(10, screensize.Y - 10, driver, g_fontengine->getFont());
 
-	if (! gui_chat_console->isOpen() && m_flags.show_minimal_debug == false) {
-		if (m_game_ui->m_flags.optifine_menu)
-			optifine_menu->draw(driver, m_game_ui->m_flags.show_minimal_debug);
-		if (g_settings->getBool("optifine_hud"))
-			optifine_menu->drawHUD(driver, dtime);
+	
+	
+	
+	if (!gui_chat_console->isOpen()) {
+		if (m_game_ui->m_flags.render_menu)
+			render_menu->draw(driver);
+		if (g_settings->getBool("function_hud"))
+			render_menu->drawHUD(driver, dtime);
 	}
-
 	/*
 		Damage flash
 	*/
@@ -4226,12 +4231,7 @@ void Game::updateFrame(ProfilerGraph *graph, RunStats *stats, f32 dtime,
 
 		runData.damage_flash -= 384.0f * dtime;
 	}
-		s32 chat_y = screensize.Y - 130;
-		video::SColor color(80, 200, 0, 0);
-		driver->draw2DRectangle(color, 
-					core::rect<s32>(10, chat_y, screensize.X - 20, 0),
-					NULL);
-
+	
 	/*
 		==================== End scene ====================
 	*/
@@ -4240,6 +4240,8 @@ void Game::updateFrame(ProfilerGraph *graph, RunStats *stats, f32 dtime,
 
 	stats->drawtime = tt_draw.stop(true);
 	g_profiler->graphAdd("Draw scene [us]", stats->drawtime);
+	g_profiler->avg("WeightOfRenderMenu [mb]", sizeof(render_menu));
+	g_profiler->avg("WeightOfSky [mb]", sizeof(sky));
 	g_profiler->avg("Game::updateFrame(): update frame [ms]", tt_update.stop(true));
 }
 

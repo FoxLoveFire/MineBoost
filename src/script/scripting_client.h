@@ -36,7 +36,7 @@ class ClientScripting:
 	public ScriptApiSecurity,
 	public ScriptApiClient,
 	public ScriptApiModChannels,
-	public ScriptApiCheats
+	public ScriptApiFunctions
 {
 public:
 	ClientScripting(Client *client);

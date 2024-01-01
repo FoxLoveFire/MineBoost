@@ -23,11 +23,11 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include <vector>
 #include <string>
 
-class ScriptApiCheatsCheat
+class ScriptApiFunctionFunctions
 {
 public:
-	ScriptApiCheatsCheat(const std::string &name, const std::string &setting);
-	ScriptApiCheatsCheat(const std::string &name, const int &function);
+	ScriptApiFunctionFunctions(const std::string &name, const std::string &setting);
+	ScriptApiFunctionFunctions(const std::string &name, const int &function);
 	std::string m_name;
 	bool is_enabled();
 	void toggle(lua_State *L, int error_handler);
@@ -37,22 +37,22 @@ private:
 	int m_function_ref;
 };
 
-class ScriptApiCheatsCategory
+class ScriptApiFunctionsCategory
 {
 public:
-	ScriptApiCheatsCategory(const std::string &name);
-	~ScriptApiCheatsCategory();
+	ScriptApiFunctionsCategory(const std::string &name);
+	~ScriptApiFunctionsCategory();
 	std::string m_name;
-	void read_cheats(lua_State *L);
-	std::vector<ScriptApiCheatsCheat *> m_cheats;
+	void read_functions(lua_State *L);
+	std::vector<ScriptApiFunctionFunctions *> m_function;
 };
 
-class ScriptApiCheats : virtual public ScriptApiBase
+class ScriptApiFunctions : virtual public ScriptApiBase
 {
 public:
-	virtual ~ScriptApiCheats();
-	void init_cheats();
-	void toggle_cheat(ScriptApiCheatsCheat *cheat);
-	bool m_cheats_loaded = false;
-	std::vector<ScriptApiCheatsCategory *> m_cheat_categories;
+	virtual ~ScriptApiFunctions();
+	void init_functions();
+	void toggle_func(ScriptApiFunctionFunctions *function);
+	bool m_function_loaded = false;
+	std::vector<ScriptApiFunctionsCategory *> m_function_categories;
 };

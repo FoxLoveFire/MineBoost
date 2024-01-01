@@ -1,6 +1,7 @@
 /*
-Dragonfire
+MineBoost
 Copyright (C) 2020 Elias Fleckenstein <eliasfleckenstein@web.de>
+Copyright (C) 2023 Shkatov Ivan <ivanskatov672@gmail.com>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -16,11 +17,8 @@ You should have received a copy of the GNU Lesser General Public License along
 with this program; if not, write to the Free Software Foundation, Inc.,
 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
-/* 
-----------------------------------------------------------------------------------------------
-Redone by FoxLoveFire 
-----------------------------------------------------------------------------------------------
-*/
+
+
 #pragma once
 
 #include "client/client.h"
@@ -29,49 +27,30 @@ Redone by FoxLoveFire
 #include <cstddef>
 #include <string>
 
-#define CHEAT_MENU_GET_SCRIPTPTR                                                         \
+#define GET_SCRIPTPTR                                                         			\
 	ClientScripting *script = m_client->getScript();                                 \
-	if (!script || !script->m_cheats_loaded)                                         \
+	if (!script || !script->m_function_loaded)                                         \
 		return;
 
-enum CheatMenuEntryType
-{
-	CHEAT_MENU_ENTRY_TYPE_HEAD,
-	CHEAT_MENU_ENTRY_TYPE_CATEGORY,
-	CHEAT_MENU_ENTRY_TYPE_ENTRY,
+enum RenderMenuType{
+	
+	HEAD,
+	CATEGORY,
+	ENTRY,
 };
 
-class Menu
-{
-public:
-	Menu(Client *client);
-
-	ClientScripting *getScript() { return m_client->getScript(); }
-
-	void draw(video::IVideoDriver *driver, bool show_debug);
-
-	void drawHUD(video::IVideoDriver *driver, double dtime);
-
-	void drawEntry(video::IVideoDriver *driver, std::string name, int number,
-			bool selected, bool active,
-			CheatMenuEntryType entry_type = CHEAT_MENU_ENTRY_TYPE_ENTRY);
-
-	void selectUp();
-	void selectDown();
-	void selectLeft();
-	void selectRight();
-	void selectConfirm();
-
+class RenderMenu{
 private:
-	bool m_cheat_layer = false;
-	int m_selected_cheat = 0;
+
+	bool m_function_layer = false;
+	int m_selected_function = 0;
 	int m_selected_category = 0;
 
 	int m_head_height = 50;
 	int m_entry_height = 40;
 	int m_entry_width = 200;
 	int m_gap = 5;
-
+	
 	video::SColor m_bg_color = video::SColor(192, 255, 145, 88);
 	video::SColor m_active_bg_color = video::SColor(192, 255, 87, 53);
 	video::SColor m_font_color = video::SColor(255, 0, 0, 0);
@@ -85,4 +64,23 @@ private:
 	v2u32 m_fontsize;
 
 	float m_rainbow_offset = 0.0;
+	
+public:
+	RenderMenu(Client *client);
+	
+	ClientScripting *getScript(){ return m_client->getScript(); };
+	
+	void draw(video::IVideoDriver *driver);
+
+	void drawHUD(video::IVideoDriver *driver, double dtime);
+
+	void drawEntry(video::IVideoDriver *driver, std::string name, int number,
+			bool selected, bool active,
+			RenderMenuType entry_type = ENTRY);
+
+	void selectUp();
+	void selectDown();
+	void selectLeft();
+	void selectRight();
+	void selectConfirm();
 };

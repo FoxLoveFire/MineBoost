@@ -76,12 +76,10 @@ enum
 	GUI_ID_KEY_DEC_RANGE_BUTTON,
 	GUI_ID_KEY_INC_RANGE_BUTTON,
 	GUI_ID_KEY_AUTOFWD_BUTTON,
+	GUI_ID_KEY_RENDER_MENU,
 	// other
 	GUI_ID_CB_AUX1_DESCENDS,
 	GUI_ID_CB_DOUBLETAP_JUMP,
-	GUI_ID_CB_NODES,
-	GUI_ID_CD_FASTPLACE,
-	
 };
 
 GUIKeyChangeMenu::GUIKeyChangeMenu(gui::IGUIEnvironment* env,
@@ -185,31 +183,6 @@ void GUIKeyChangeMenu::regenerateGui(v2u32 screensize)
 	}
 
 	{
-		s32 option_x = offset.X;
-		s32 option_y = offset.Y + 5 * s;
-		u32 option_w = 280;
-		{
-			core::rect<s32> rect(0, 0, option_w, 30 * s);
-			rect += topleft + v2s32(option_x, option_y);
-			Environment->addCheckBox(g_settings->getBool("nodestrok"), rect, this,
-					GUI_ID_CB_NODES, wstrgettext("Stroke nodes").c_str());
-		}
-		offset += v2s32(0, 25);
-	}
-    
-    	{
-		s32 option_x = offset.X;
-		s32 option_y = offset.Y + 5 * s;
-		u32 option_w = 280;
-		{
-			core::rect<s32> rect(0, 0, option_w, 30 * s);
-			rect += topleft + v2s32(option_x, option_y);
-			Environment->addCheckBox(g_settings->getBool("fast_place"), rect, this,
-					GUI_ID_CD_FASTPLACE, wstrgettext("Fastplacing").c_str());
-		}
-		offset += v2s32(0, 25);
-	}
-	{
 		core::rect<s32> rect(0, 0, 100 * s, 30 * s);
 		rect += topleft + v2s32(size.X / 2 - 105 * s, size.Y - 40 * s);
 		GUIButton::addButton(Environment, rect, m_tsrc, this, GUI_ID_BACK_BUTTON,
@@ -257,16 +230,6 @@ bool GUIKeyChangeMenu::acceptInput()
 		gui::IGUIElement *e = getElementFromId(GUI_ID_CB_DOUBLETAP_JUMP);
 		if(e && e->getType() == gui::EGUIET_CHECK_BOX)
 			g_settings->setBool("doubletap_jump", ((gui::IGUICheckBox*)e)->isChecked());
-	}
-	{
-		gui::IGUIElement *e = getElementFromId(GUI_ID_CB_NODES);
-		if(e && e->getType() == gui::EGUIET_CHECK_BOX)
-			g_settings->setBool("nodestrok", ((gui::IGUICheckBox*)e)->isChecked());
-	}
-    	{
-		gui::IGUIElement *e = getElementFromId(GUI_ID_CD_FASTPLACE);
-		if(e && e->getType() == gui::EGUIET_CHECK_BOX)
-			g_settings->setBool("fast_place", ((gui::IGUICheckBox*)e)->isChecked());
 	}
 
 	clearKeyCache();
@@ -436,4 +399,5 @@ void GUIKeyChangeMenu::init_keys()
 	this->add_key(GUI_ID_KEY_HUD_BUTTON,          wstrgettext("Toggle HUD"),       "keymap_toggle_hud");
 	this->add_key(GUI_ID_KEY_CHATLOG_BUTTON,      wstrgettext("Toggle chat log"),  "keymap_toggle_chat");
 	this->add_key(GUI_ID_KEY_FOG_BUTTON,          wstrgettext("Toggle fog"),       "keymap_toggle_fog");
+	this->add_key(GUI_ID_KEY_RENDER_MENU,         wstrgettext("Toggle Fast Menu"), "keymap_toggle_render_menu");
 }
