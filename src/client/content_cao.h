@@ -208,7 +208,10 @@ public:
 	{
 		return m_is_visible;
 	}
-
+	inline bool isPlayer() const
+	{
+		return m_is_player;
+	}
 	inline void setVisible(bool toset)
 	{
 		m_is_visible = toset;

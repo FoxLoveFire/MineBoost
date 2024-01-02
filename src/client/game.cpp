@@ -1289,7 +1289,7 @@ void Game::shutdown()
 	auto formspec = m_game_ui->getFormspecGUI();
 	if (formspec)
 		formspec->quitMenu();
-	
+
 	m_game_ui->Clear();
 
 #ifdef HAVE_TOUCHSCREENGUI
@@ -1315,7 +1315,7 @@ void Game::shutdown()
 	}
 
 	m_game_ui->deleteFormspec();
-	
+
 
 	chat_backend->addMessage(L"", L"# Disconnected.");
 	chat_backend->addMessage(L"", L"");
@@ -1561,7 +1561,7 @@ bool Game::initGui()
 		errorstream << *error_message << std::endl;
 		return false;
 	}
-	
+
 	render_menu = new RenderMenu(client);
 
 	if (!render_menu){
@@ -3548,7 +3548,7 @@ void Game::handlePointingAtNode(const PointedThing &pointed,
 			client->checkPrivilege("interact")) {
 		runData.repeat_place_timer = 0;
 		infostream << "Place button pressed while looking at ground" << std::endl;
-		
+
 		// Placing animation (always shown for feedback)
 		camera->setDigging(1);
 
@@ -4195,14 +4195,14 @@ void Game::updateFrame(ProfilerGraph *graph, RunStats *stats, f32 dtime,
 	bool draw_crosshair = (
 			(player->hud_flags & HUD_FLAG_CROSSHAIR_VISIBLE) &&
 			(camera->getCameraMode() != CAMERA_MODE_THIRD_FRONT));
-	
+
 #ifdef HAVE_TOUCHSCREENGUI
 	if (isNoCrosshairAllowed())
 		draw_crosshair = false;
 #endif
 	m_rendering_engine->draw_scene(skycolor, m_game_ui->m_flags.show_hud,
 			m_game_ui->m_flags.show_minimap, draw_wield_tool, draw_crosshair);
-	
+
 	/*
 		Profiler graph
 	*/
@@ -4211,9 +4211,9 @@ void Game::updateFrame(ProfilerGraph *graph, RunStats *stats, f32 dtime,
 	if (m_game_ui->m_flags.show_profiler_graph)
 		graph->draw(10, screensize.Y - 10, driver, g_fontengine->getFont());
 
-	
-	
-	
+
+
+
 	if (!gui_chat_console->isOpen()) {
 		if (m_game_ui->m_flags.render_menu)
 			render_menu->draw(driver);
@@ -4231,7 +4231,7 @@ void Game::updateFrame(ProfilerGraph *graph, RunStats *stats, f32 dtime,
 
 		runData.damage_flash -= 384.0f * dtime;
 	}
-	
+
 	/*
 		==================== End scene ====================
 	*/

@@ -33,19 +33,19 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "version.h"
 
 std::string get_irrlicht_device(){
-	
+
 	switch (RenderingEngine::get_raw_device()->getType()) {
-			case EIDT_WIN32: 
+			case EIDT_WIN32:
 				return "WIN32";
-			case EIDT_X11: 
+			case EIDT_X11:
 				return "X11";
-			case EIDT_OSX: 
+			case EIDT_OSX:
 				return "OSX";
-			case EIDT_SDL: 
+			case EIDT_SDL:
 				return "SDL";
-			case EIDT_ANDROID: 
+			case EIDT_ANDROID:
 				return "ANDROID";
-			default: 
+			default:
 				return "Unknown";
 	}
 }
@@ -121,7 +121,7 @@ void GameUI::init()
 }
 
 void GameUI::update(const RunStats &stats, Client *client, MapDrawControl *draw_control,
-	const CameraOrientation &cam, const PointedThing &pointed_old,	
+	const CameraOrientation &cam, const PointedThing &pointed_old,
 	const GUIChatConsole *chat_console, float dtime)
 {
 	v2u32 screensize = RenderingEngine::getWindowSize();
@@ -140,7 +140,7 @@ void GameUI::update(const RunStats &stats, Client *client, MapDrawControl *draw_
 		os << std::fixed
 			<< PROJECT_NAME_C""  << g_version_hash << "[Minetest client]" << std::endl
 			<< "FPS: " << fps << "/" <<fps_limit << " | Driver: "  << get_videoDriver()
-			<< std::setprecision(0) 
+			<< std::setprecision(0)
 			<< " | View range: "
 			<< (draw_control->range_all ? "All" : itos(draw_control->wanted_range))
 			<< std::setprecision(2) << std::endl
@@ -152,7 +152,7 @@ void GameUI::update(const RunStats &stats, Client *client, MapDrawControl *draw_
 			<< yawToDirectionString(cam.camera_yaw)
 			<< " | Pitch: " << (-wrapDegrees_180(cam.camera_pitch)) << "°" << std::endl
 			<< "Seed: " << ((u64)client->getMapSeed()) << std::endl
-			<< "Drawtime: " << m_drawtime_avg << "ms" 
+			<< "Drawtime: " << m_drawtime_avg << "ms"
 			<< std::setprecision(1)
 			<< " | Dtime jitter: "
 			<< (stats.dtime_jitter.max_fraction * 100.0) << "%"
@@ -239,7 +239,7 @@ void GameUI::update(const RunStats &stats, Client *client, MapDrawControl *draw_
 void GameUI::initFlags()
 {
 	m_flags = GameUI::Flags();
-	m_flags.show_minimal_debug = g_settings->getBool("show_debug");	
+	m_flags.show_minimal_debug = g_settings->getBool("show_debug");
 }
 
 void GameUI::showMinimap(bool show)
@@ -373,36 +373,36 @@ void GameUI::deleteFormspec()
 
 void GameUI::Clear()
 {
-	
+
 	if (m_guitext_chat) {
 		m_guitext_chat->remove();
 		m_guitext_chat = nullptr;
 	}
-	
+
 	if (m_guitext) {
 		m_guitext->remove();
 		m_guitext = nullptr;
 	}
-	
+
 	if (m_guitext2) {
 		m_guitext2->remove();
 		m_guitext2 = nullptr;
 	}
-	
+
 	if (m_guitext_info) {
 		m_guitext_info->remove();
 		m_guitext_info = nullptr;
 	}
-		
+
 	if (m_guitext_status) {
 		m_guitext_status->remove();
 		m_guitext_status = nullptr;
 	}
-		
+
 	if (m_guitext_profiler) {
 		m_guitext_profiler->remove();
 		m_guitext_profiler = nullptr;
 	}
-		
+
 }
 
