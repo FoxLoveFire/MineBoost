@@ -31,6 +31,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "profiler.h"
 #include "renderingengine.h"
 #include "version.h"
+#include "log.h"
 
 std::string get_irrlicht_device(){
 	
@@ -77,6 +78,8 @@ GameUI::GameUI()
 }
 void GameUI::init()
 {
+	m_guitext_coords = gui::StaticText::add(guienv, L"", core::rect<s32>(0, 0, 0, 0),
+		false, true, guiroot);
 	// First line of debug text
 	m_guitext = gui::StaticText::add(guienv, utf8_to_wide(PROJECT_NAME_C).c_str(),
 		core::rect<s32>(0, 0, 0, 0), false, true, guiroot);
@@ -128,6 +131,21 @@ void GameUI::update(const RunStats &stats, Client *client, MapDrawControl *draw_
 	const int fps_limit = (g_settings->getU64("fps_max"));
 	LocalPlayer *player = client->getEnv().getLocalPlayer();
 	s32 minimal_debug_height = 0;
+	v3f player_position = player->getPosition();
+
+	if (g_settings->getBool("show_coords")){
+		std::ostringstream os(std::ios_base::binary);
+
+		os << std::setprecision(1) << std::fixed
+			<< (player_position.X / BS)
+			<< ", " << (player_position.Y / BS)
+			<< ", " << (player_position.Z / BS);
+		setStaticText(m_guitext_coords, utf8_to_wide(os.str()).c_str());
+		m_guitext_coords->setRelativePosition(core::rect<s32>(5, screensize.Y - 5 -  g_fontengine->getTextHeight(),
+			screensize.X, screensize.Y));
+	} else {
+		m_guitext_coords -> setText(L"");
+	}
 
 	// Minimal debug text must only contain info that can't give a gameplay advantage
 	if (m_flags.show_minimal_debug) {
@@ -403,6 +421,9 @@ void GameUI::Clear()
 		m_guitext_profiler->remove();
 		m_guitext_profiler = nullptr;
 	}
-		
+	
+	if (m_guitext_coords) {
+		m_guitext_coords->remove();
+		m_guitext_coords = nullptr;
+	}	
 }
-

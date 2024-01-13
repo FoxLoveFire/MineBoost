@@ -24,6 +24,7 @@ core.functions = {
     	["3D clouds"] = "enable_3d_clouds",
     	["Fog"] = "enable_fog",
 	["Fullbright"] = "night",
+	["Shoow coords"] = "show_coords",
     }
 }
 
@@ -32,16 +33,4 @@ function core.register_function(functionname, category, func)
 	core.functions[category][functioname] = func
 end
 
-minetest.register_globalstep(function(dtime)
 
-    local pos = core.camera:get_pos()
-    local dir = core.camera:get_look_dir()
-    local raycast = minetest.raycast(pos, vector.add(pos, vector.multiply(dir, 4)), true, false)
-    local texture = "hit.png"
-    local amount = tonumber(minetest.settings:get("particle_ammount"))
-    
-    if minetest.settings:get_bool("particles") then
-        register_hits(pos, dir, texture, raycast, amount)
-    end
-    
-end)

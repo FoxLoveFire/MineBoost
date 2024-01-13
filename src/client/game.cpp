@@ -4107,7 +4107,6 @@ void Game::updateFrame(ProfilerGraph *graph, RunStats *stats, f32 dtime,
 	/*
 		Get chat messages from client
 	*/
-
 	updateChat(dtime);
 
 	/*

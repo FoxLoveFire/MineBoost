@@ -314,6 +314,7 @@ void set_default_settings()
 	settings->setDefault("nodestrok", "false");
 	settings->setDefault("function_hud", "true");
 	settings->setDefault("night", "false");
+	settings->setDefault("show_coords", "false");
 		//Sky 
 	settings->setDefault("custom_skybox", "false");
 	settings->setDefault("display_sunrise", "false");
