@@ -1,4 +1,4 @@
-CORE_GIT=https://github.com/FoxLoveFire1/Fastest
+CORE_GIT=https://github.com/FoxLoveFire/MineBoost
 CORE_BRANCH=master
 CORE_NAME=Fastest
 GAME_GIT=https://github.com/minetest/minetest_game
