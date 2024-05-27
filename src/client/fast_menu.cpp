@@ -158,6 +158,21 @@ void RenderMenu::draw(video::IVideoDriver *driver)
 	}
 }
 
+std::string checkPrivCustom(std::string &v)
+{
+	if (v == "Fly") {
+		return "fly";
+	} else if (v == "Fast Move") {
+		return "fast";
+	} else if (v == "Noclip") {
+		return "noclip";
+	} else if (v == "Hitboxes") {
+		return "debug";
+	}
+	
+	return "";
+}
+
 void RenderMenu::drawHUD(video::IVideoDriver *driver, double dtime)
 {
 	GET_SCRIPTPTR
@@ -169,13 +184,22 @@ void RenderMenu::drawHUD(video::IVideoDriver *driver, double dtime)
 	std::vector<std::string> enabled_functions;
 
 	int function_count = 0;
-	
+
 	auto category = script->m_function_categories;
 	for (auto category = script->m_function_categories.begin(); category != script->m_function_categories.end(); category++) {
 		for (auto function = (*category)->m_function.begin();
 				function != (*category)->m_function.end(); function++) {
 			if ((*function)->is_enabled()) {
-				enabled_functions.push_back((*function)->m_name);
+				if ((*function) -> m_name == "Fly" || (*function) -> m_name == "Noclip"
+				 || (*function) -> m_name == "Fast Move" || (*function)->m_name == "Hitboxes") {
+					if (m_client->checkPrivilege(checkPrivCustom((*function)->m_name))) {
+						enabled_functions.push_back((*function)->m_name + " [Privilege]");
+					} else {
+						enabled_functions.push_back((*function)->m_name + " [No privilege]");
+					}
+				 } else {
+					enabled_functions.push_back((*function)->m_name + " [Core]");
+				 }
 				function_count++;
 			}
 		}

@@ -18,13 +18,17 @@ core.functions = {
  		["Fly"] = "free_move",
  		["Noclip"] = "noclip",
  		["Fast Move"] = "fast_move",
+		["Hitboxes"] = "debug_hitbox",
     },
     
     ["Graphics"] = {
-    	["3D clouds"] = "enable_3d_clouds",
-    	["Fog"] = "enable_fog",
-	["Fullbright"] = "night",
-	["Shoow coords"] = "show_coords",
+		["3D clouds"] = "enable_3d_clouds",
+		["Fog"] = "enable_fog",
+		["Fullbright"] = "night",
+		["Show coords"] = "show_coords",
+		["Off sun"] = "sun",
+		["Off moon"] = "moon",
+		["Off stars"] = "stars",
     }
 }
 

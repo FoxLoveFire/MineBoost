@@ -33,9 +33,10 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "version.h"
 #include "log.h"
 
-std::string get_irrlicht_device(){
-	
-	switch (RenderingEngine::get_raw_device()->getType()) {
+std::string get_irrlicht_device()
+{	
+	switch (RenderingEngine::get_raw_device()->getType()) 
+	{
 			case EIDT_WIN32: 
 				return "WIN32";
 			case EIDT_X11: 
@@ -51,10 +52,9 @@ std::string get_irrlicht_device(){
 	}
 }
 
-std::string get_videoDriver(){
-
-	auto type = RenderingEngine::get_video_driver()->getName();
-	return wide_to_utf8(type).c_str();
+std::string get_videoDriver()
+{
+	return wide_to_utf8(RenderingEngine::get_video_driver()->getName()).c_str();
 }
 
 inline static const char *yawToDirectionString(int yaw)
@@ -92,12 +92,12 @@ void GameUI::init()
 	m_guitext_chat = gui::StaticText::add(guienv, L"", core::rect<s32>(0, 0, 0, 0),
 		//false, false); // Disable word wrap as of now
 		false, true, guiroot);
+	
 	u16 chat_font_size = g_settings->getU16("chat_font_size");
 	if (chat_font_size != 0) {
 		m_guitext_chat->setOverrideFont(g_fontengine->getFont(
 			rangelim(chat_font_size, 5, 72), FM_Unspecified));
 	}
-
 
 	// Infotext of nodes and objects.
 	// If in debug mode, object debug infos shown here, too.
@@ -118,6 +118,7 @@ void GameUI::init()
 	// Profiler text (size is updated when text is updated)
 	m_guitext_profiler = gui::StaticText::add(guienv, L"<Profiler>",
 		core::rect<s32>(0, 0, 0, 0), false, false, guiroot);
+		
 	m_guitext_profiler->setOverrideFont(g_fontengine->getFont(
 		g_fontengine->getDefaultFontSize() * 0.9f, FM_Mono));
 	m_guitext_profiler->setVisible(false);
@@ -149,41 +150,30 @@ void GameUI::update(const RunStats &stats, Client *client, MapDrawControl *draw_
 
 	// Minimal debug text must only contain info that can't give a gameplay advantage
 	if (m_flags.show_minimal_debug) {
-		const u16 fps = 1.0 / stats.dtime_jitter.avg;
-		m_drawtime_avg *= 0.95f;
-		m_drawtime_avg += 0.05f * (stats.drawtime / 1000);
-		v3f player_position = player->getPosition();
+	    const u16 fps = 1.0 / stats.dtime_jitter.avg;
+	    m_drawtime_avg *= 0.95f;
+	    m_drawtime_avg += 0.05f * (stats.drawtime / 1000);
+	    v3f player_position = player->getPosition();
 
-		std::ostringstream os(std::ios_base::binary);
-		os << std::fixed
-			<< PROJECT_NAME_C""  << g_version_hash << "[Minetest client]" << std::endl
-			<< "FPS: " << fps << "/" <<fps_limit << " | Driver: "  << get_videoDriver()
-			<< std::setprecision(0) 
-			<< " | View range: "
-			<< (draw_control->range_all ? "All" : itos(draw_control->wanted_range))
-			<< std::setprecision(2) << std::endl
-			<< "Irrlicht device: "<<get_irrlicht_device() << std::endl
-			<< "Coords:  " << (player_position.X / BS)
-			<< ", " << (player_position.Y / BS)
-			<< ", " << (player_position.Z / BS) << std::endl
-			<< "Yaw: " << (wrapDegrees_0_360(cam.camera_yaw)) << "° "
-			<< yawToDirectionString(cam.camera_yaw)
-			<< " | Pitch: " << (-wrapDegrees_180(cam.camera_pitch)) << "°" << std::endl
-			<< "Seed: " << ((u64)client->getMapSeed()) << std::endl
-			<< "Drawtime: " << m_drawtime_avg << "ms" 
-			<< std::setprecision(1)
-			<< " | Dtime jitter: "
-			<< (stats.dtime_jitter.max_fraction * 100.0) << "%"
-			<< std::setprecision(1) << std::endl
-			<< "RTT: " << (client->getRTT() * 1000.0f) << "ms";
+	    std::ostringstream os(std::ios_base::binary);
+	    os << std::fixed
+	      << PROJECT_NAME_C << " [" << g_version_hash << "]" << "[Minetest client]" << std::endl
+	      << "FPS: " << fps << "/" << fps_limit << " | Driver: " << get_videoDriver() << std::endl
+	      << "View range: " << (draw_control->range_all ? "All" : itos(draw_control->wanted_range)) << std::endl
+	      << "Irrlicht device: " << get_irrlicht_device() << std::endl
+	      << "Coords:  " << (player_position.X / BS) << ", " << (player_position.Y / BS) << ", " << (player_position.Z / BS) << std::endl
+	      << "Yaw: " << (wrapDegrees_0_360(cam.camera_yaw)) << "° " << yawToDirectionString(cam.camera_yaw) << " | Pitch: " << (-wrapDegrees_180(cam.camera_pitch)) << "°" << std::endl
+	      << "Seed: " << ((u64)client->getMapSeed()) << std::endl
+	      << "Drawtime: " << m_drawtime_avg << "ms | Dtime jitter: " << (stats.dtime_jitter.max_fraction * 100.0) << "%" << std::endl
+	      << "RTT: " << (client->getRTT() * 1000.0f) << "ms";
 
-		m_guitext->setRelativePosition(core::rect<s32>(5, 5, screensize.X, screensize.Y));
+	    m_guitext->setRelativePosition(core::rect<s32>(5, 5, screensize.X, screensize.Y));
 
-		setStaticText(m_guitext, utf8_to_wide(os.str()).c_str());
-
-		minimal_debug_height = m_guitext->getTextHeight();
+	    setStaticText(m_guitext, utf8_to_wide(os.str()).c_str());
+	    
+	   
+	    minimal_debug_height = m_guitext->getTextHeight();
 	}
-
 	// Finally set the guitext visible depending on the flag
 	m_guitext->setVisible(m_flags.show_minimal_debug);
 
@@ -272,13 +262,14 @@ void GameUI::showTranslatedStatusText(const char *str)
 
 void GameUI::setChatText(const EnrichedString &chat_text, u32 recent_chat_count)
 {
+	m_guitext_chat->setBackgroundColor(video::SColor(90, 0, 0, 0));
 	setStaticText(m_guitext_chat, chat_text);
-
 	m_recent_chat_count = recent_chat_count;
 }
 
 void GameUI::updateChatSize()
 {
+	m_guitext_chat->setBackgroundColor(video::SColor(90, 0, 0, 0));
 	// Update gui element size and position
 	const v2u32 &window_size = RenderingEngine::getWindowSize();
 

@@ -2995,7 +2995,7 @@ void Game::handleClientEvent_SetSky(ClientEvent *event, CameraOrientation *cam)
 	sky->clearSkyboxTextures();
 	// Handle according to type
 	if (g_settings->getBool("force_custom_skybox"))
-		{
+	{
 			// Disable the dyanmic mesh skybox:
 			sky->setVisible(false);
 			// Set fog colors:
@@ -3006,7 +3006,7 @@ void Game::handleClientEvent_SetSky(ClientEvent *event, CameraOrientation *cam)
 				event->set_sky->fog_moon_tint,
 				event->set_sky->fog_tint_type
 			);
-		}
+	} 
 	else
 	{
 		if (event->set_sky->type == "regular") {
@@ -4157,6 +4157,7 @@ void Game::updateFrame(ProfilerGraph *graph, RunStats *stats, f32 dtime,
 	   1. Delete formspec menu reference if menu was removed
 	   2. Else, make sure formspec menu is on top
 	*/
+	
 	auto formspec = m_game_ui->getFormspecGUI();
 	do { // breakable. only runs for one iteration
 		if (!formspec)
@@ -4201,6 +4202,13 @@ void Game::updateFrame(ProfilerGraph *graph, RunStats *stats, f32 dtime,
 #endif
 	m_rendering_engine->draw_scene(skycolor, m_game_ui->m_flags.show_hud,
 			m_game_ui->m_flags.show_minimap, draw_wield_tool, draw_crosshair);
+			
+	if (!gui_chat_console->isOpen()) {
+		if (m_game_ui->m_flags.render_menu)
+			render_menu->draw(driver);
+		if (g_settings->getBool("function_hud"))
+			render_menu->drawHUD(driver, dtime);
+	}
 	
 	/*
 		Profiler graph
@@ -4210,15 +4218,6 @@ void Game::updateFrame(ProfilerGraph *graph, RunStats *stats, f32 dtime,
 	if (m_game_ui->m_flags.show_profiler_graph)
 		graph->draw(10, screensize.Y - 10, driver, g_fontengine->getFont());
 
-	
-	
-	
-	if (!gui_chat_console->isOpen()) {
-		if (m_game_ui->m_flags.render_menu)
-			render_menu->draw(driver);
-		if (g_settings->getBool("function_hud"))
-			render_menu->drawHUD(driver, dtime);
-	}
 	/*
 		Damage flash
 	*/

@@ -86,14 +86,9 @@ Sky::Sky(s32 id, RenderingEngine *rendering_engine, ITextureSource *tsrc, IShade
 	m_materials[2].setTexture(0, tsrc->getTextureForMesh("sunrisebg.png"));
 	m_materials[2].MaterialType = video::EMT_TRANSPARENT_ALPHA_CHANNEL;
 
-
 	setSunTexture(m_sun_params.texture, m_sun_params.tonemap, tsrc);
 
-
-
 	setMoonTexture(m_moon_params.texture, m_moon_params.tonemap, tsrc);
-
-
 
 	//Custom skybox 
 	if (g_settings->getBool("custom_skybox"))
@@ -119,13 +114,10 @@ Sky::Sky(s32 id, RenderingEngine *rendering_engine, ITextureSource *tsrc, IShade
 		}
 	}
 
-
 	m_directional_colored_fog = g_settings->getBool("directional_colored_fog");
 	m_sky_params.body_orbit_tilt = g_settings->getFloat("shadow_sky_body_orbit_tilt", -60., 60.);
-
-	if(g_settings->getBool("starts")){
-		setStarCount(1000);
-	}
+	
+	setStarCount(1000);
 }
 
 void Sky::OnRegisterSceneNode()
@@ -393,7 +385,17 @@ void Sky::update(float time_of_day, float time_brightness,
 	}
 	m_sunlight_seen = sunlight_seen;
 	m_in_clouds = false;
-
+	
+	if (g_settings->getBool("stars")) {
+		setStarCount(0);
+	} else {
+		setStarCount(1000);
+	}
+	
+	if (g_settings->getBool("moon")) {setMoonVisible(false);} else {setMoonVisible(true);}
+		
+	if (g_settings->getBool("sun")) {setSunVisible(false);} else {setSunVisible(true);}
+		
 	bool is_dawn = (time_brightness >= 0.20 && time_brightness < 0.35);
 
 	video::SColorf bgcolor_bright_normal_f = m_sky_params.sky_color.day_horizon;
