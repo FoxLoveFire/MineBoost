@@ -163,16 +163,11 @@ jobs:
         run: |
            EXISTING_MINETEST_DIR=$PWD ./util/buildbot/buildwin32.sh winbuild
 
-      - name: Zip
-        run: |
-          cd winbuild
-          zip -r MinGW_32bit.zip ./build
-
-      - name: Upload
+      - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: build-artifact
-          path: winbuild/MinGW_32bit.zip
+          name: MinGW_32bit
+          path: winbuild/
 
   win64:
     name: "MinGW cross-compiler (64-bit)"
@@ -189,16 +184,11 @@ jobs:
         run: |
           EXISTING_MINETEST_DIR=$PWD ./util/buildbot/buildwin64.sh winbuild
 
-      - name: Zip
-        run: |
-          cd winbuild
-          zip -r MinGW_64bit.zip ./build
-
-      - name: Upload
+      - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: build-artifact
-          path: winbuild/MinGW_64bit.zip
+          name: MinGW_64bit
+          path: winbuild/
 
   msvc:
     name: VS 2019 ${{ matrix.config.arch }}-${{ matrix.type }}
