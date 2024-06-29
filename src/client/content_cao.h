@@ -213,11 +213,6 @@ public:
 	{
 		m_is_visible = toset;
 	}
-	
-	inline bool isPlayer() const
-	{
-		return m_is_player;
-	}
 
 	void setChildrenVisible(bool toset);
 	void setAttachment(int parent_id, const std::string &bone, v3f position,

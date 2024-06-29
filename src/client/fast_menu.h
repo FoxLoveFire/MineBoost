@@ -77,7 +77,6 @@ public:
 	void drawEntry(video::IVideoDriver *driver, std::string name, int number,
 			bool selected, bool active,
 			RenderMenuType entry_type = ENTRY);
-			
 
 	void selectUp();
 	void selectDown();

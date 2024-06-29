@@ -309,21 +309,19 @@ void set_default_settings()
 	settings->setDefault("aux1_descends", "false");
 	settings->setDefault("doubletap_jump", "false");
 	settings->setDefault("always_fly_fast", "true");
-	//MineBoost: 
+	//Fastest: 
 	settings->setDefault("fast_place", "false");
 	settings->setDefault("nodestrok", "false");
 	settings->setDefault("function_hud", "true");
 	settings->setDefault("night", "false");
 	settings->setDefault("show_coords", "false");
-	settings->setDefault("debug_hitbox", "false");
-	//Sky 
+		//Sky 
 	settings->setDefault("custom_skybox", "false");
 	settings->setDefault("display_sunrise", "false");
 	settings->setDefault("force_custom_skybox", "false");
 	settings->setDefault("force_render_skybox", "true");
-	settings->setDefault("sun", "false");
-	settings->setDefault("stars", "false");
-	settings->setDefault("moon", "false");
+	settings->setDefault("sun", "true");
+	settings->setDefault("starts", "true");
 #ifdef HAVE_TOUCHSCREENGUI
 	settings->setDefault("autojump", "true");
 #else

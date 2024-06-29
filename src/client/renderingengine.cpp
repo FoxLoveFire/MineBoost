@@ -37,8 +37,6 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "filesys.h"
 #include "../gui/guiSkin.h"
 #include "gameui.h"
-#include <iostream>
-#include "log.h"
 
 #if !defined(_WIN32) && !defined(__APPLE__) && !defined(__ANDROID__) && \
 		!defined(SERVER) && !defined(__HAIKU__)
@@ -451,9 +449,9 @@ void RenderingEngine::draw_load_screen(const std::wstring &text,
 		g_menuclouds->render();
 		get_video_driver()->beginScene(true, true, RenderingEngine::MENU_SKY_COLOR);
 		g_menucloudsmgr->drawAll();
-	} else {
+	}
+	else{
 		video::ITexture* texture = tsrc->getTexture(("menu_bg.png"));
-
 		const auto &bg_size = texture->getSize();
 		auto screensize = get_video_driver()->getScreenSize();
 		draw2DImageFilterScaled(get_video_driver(), texture,
@@ -462,6 +460,7 @@ void RenderingEngine::draw_load_screen(const std::wstring &text,
 			 bg_size.Height + (screensize.Height - bg_size.Height)),
 			core::rect<s32>(0, 0, bg_size.Width, bg_size.Height),
 			0, 0, true);
+		//get_video_driver()->beginScene(true, true, video::SColor(250, 0, 0, 0));
 	}
 
 	// draw progress bar
