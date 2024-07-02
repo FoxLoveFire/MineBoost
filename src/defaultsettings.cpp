@@ -232,7 +232,7 @@ void set_default_settings()
 	settings->setDefault("fall_bobbing_amount", "0.03");
 	settings->setDefault("enable_3d_clouds", "true");
 	settings->setDefault("cloud_radius", "12");
-	settings->setDefault("menu_clouds", "true");
+	settings->setDefault("menu_clouds", "false");
 	settings->setDefault("opaque_water", "false");
 	settings->setDefault("console_height", "0.6");
 	settings->setDefault("console_color", "(0,0,0)");
@@ -309,22 +309,25 @@ void set_default_settings()
 	settings->setDefault("aux1_descends", "false");
 	settings->setDefault("doubletap_jump", "false");
 	settings->setDefault("always_fly_fast", "true");
-	//Fastest: 
+	//MineBoost: 
 	settings->setDefault("fast_place", "false");
 	settings->setDefault("nodestrok", "false");
 	settings->setDefault("function_hud", "true");
 	settings->setDefault("night", "false");
 	settings->setDefault("show_coords", "false");
-		//Sky 
+
+	//Sky 
 	settings->setDefault("custom_skybox", "false");
 	settings->setDefault("display_sunrise", "false");
 	settings->setDefault("force_custom_skybox", "false");
 	settings->setDefault("force_render_skybox", "true");
-	settings->setDefault("sun", "true");
-	settings->setDefault("starts", "true");
+	settings->setDefault("stars_off", "false");
+	settings->setDefault("sun_off", "false");
+	settings->setDefault("moon_off", "false");
+
 #ifdef HAVE_TOUCHSCREENGUI
 	settings->setDefault("autojump", "true");
-#else
+#else	
 	settings->setDefault("autojump", "false");
 #endif
 	settings->setDefault("continuous_forward", "false");

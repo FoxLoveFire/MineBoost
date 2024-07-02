@@ -79,9 +79,12 @@ fast_place (Fastplace) bool false
 nodestrok (Node stroker) bool false
 #    HUD
 function_hud (Function HUD) bool true
-#  Starts
-starts (Starts) bool true
-
+#    Turn off the starts
+starts_off (Turn off the starts) bool false
+#    Turn off the moon 
+moon_off (Turn off the moon) bool false
+#    Turn off the sun
+sun_off (Turn off the sun) bool false
 
 
 [Controls]

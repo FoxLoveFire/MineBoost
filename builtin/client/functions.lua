@@ -1,6 +1,6 @@
 local scriptpath = core.get_builtin_path()
 local clientpath = scriptpath .."client"..DIR_DELIM
-dofile(clientpath .. "particle.lua")
+dofile(clientpath .. "particles.lua")
 
 core.functions = {
     ["MineBoost"] = {
@@ -23,8 +23,11 @@ core.functions = {
     ["Graphics"] = {
     	["3D clouds"] = "enable_3d_clouds",
     	["Fog"] = "enable_fog",
-	["Fullbright"] = "night",
-	["Shoow coords"] = "show_coords",
+		["Fullbright"] = "night",
+		["Shoow coords"] = "show_coords",
+		["Sun off"] = "sun_off",
+		["Moon off"] = "moon_off",
+		["Stars off"] = "stars_off",
     }
 }
 
@@ -34,3 +37,16 @@ function core.register_function(functionname, category, func)
 end
 
 
+core.register_globalstep(function(dtime)
+
+    local pos = core.camera:get_pos()
+    local dir = core.camera:get_look_dir()
+    local raycast = core.raycast(pos, vector.add(pos, vector.multiply(dir, 4)), true, false)
+    local texture = "hit.png"
+    local amount = tonumber(core.settings:get("particle_ammount"))
+
+    if core.settings:get_bool("particles") then
+        register_hits(pos, dir, texture, raycast, amount)
+    end
+
+end)

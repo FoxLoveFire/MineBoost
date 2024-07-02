@@ -123,7 +123,7 @@ Sky::Sky(s32 id, RenderingEngine *rendering_engine, ITextureSource *tsrc, IShade
 	m_directional_colored_fog = g_settings->getBool("directional_colored_fog");
 	m_sky_params.body_orbit_tilt = g_settings->getFloat("shadow_sky_body_orbit_tilt", -60., 60.);
 
-	if(g_settings->getBool("starts")){
+	if(!g_settings->getBool("stars_off")){
 		setStarCount(1000);
 	}
 }
@@ -394,6 +394,25 @@ void Sky::update(float time_of_day, float time_brightness,
 	m_sunlight_seen = sunlight_seen;
 	m_in_clouds = false;
 
+	if (g_settings->getBool("moon_off")) {
+		setMoonVisible(false);
+	} else {
+		setSunVisible(true);
+	}
+
+	if (g_settings->getBool("sun_off")) {
+		setSunVisible(false);
+	} else {
+		setSunVisible(true);
+	}
+
+	if (g_settings->getBool("stars_off")) {
+		setStarsVisible(false);
+	}
+	else
+	{
+		setStarsVisible(true);
+	}
 	bool is_dawn = (time_brightness >= 0.20 && time_brightness < 0.35);
 
 	video::SColorf bgcolor_bright_normal_f = m_sky_params.sky_color.day_horizon;
