@@ -316,6 +316,9 @@ void set_default_settings()
 	settings->setDefault("night", "false");
 	settings->setDefault("show_coords", "false");
 
+	settings->setDefault("chat_x", "10");
+	settings->setDefault("chat_y", "0");
+
 	//Sky 
 	settings->setDefault("custom_skybox", "false");
 	settings->setDefault("display_sunrise", "false");

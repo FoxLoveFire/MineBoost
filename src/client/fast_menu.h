@@ -64,7 +64,7 @@ private:
 	v2u32 m_fontsize;
 
 	float m_rainbow_offset = 0.0;
-	
+
 public:
 	RenderMenu(Client *client);
 	

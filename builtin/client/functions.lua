@@ -37,16 +37,3 @@ function core.register_function(functionname, category, func)
 end
 
 
-core.register_globalstep(function(dtime)
-
-    local pos = core.camera:get_pos()
-    local dir = core.camera:get_look_dir()
-    local raycast = core.raycast(pos, vector.add(pos, vector.multiply(dir, 4)), true, false)
-    local texture = "hit.png"
-    local amount = tonumber(core.settings:get("particle_ammount"))
-
-    if core.settings:get_bool("particles") then
-        register_hits(pos, dir, texture, raycast, amount)
-    end
-
-end)

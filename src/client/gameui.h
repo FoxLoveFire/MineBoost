@@ -116,6 +116,7 @@ private:
 	float m_drawtime_avg = 0;
 
 	gui::IGUIStaticText *m_guitext = nullptr;  // First line of debug text
+	gui::IGUIStaticText *m_guitext_am = nullptr;  // First line of debug text
 	gui::IGUIStaticText *m_guitext2 = nullptr; // Second line of debug text
 	gui::IGUIStaticText *m_guitext_coords = nullptr; // Coords
 

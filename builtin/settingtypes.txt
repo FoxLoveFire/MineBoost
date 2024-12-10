@@ -85,7 +85,10 @@ starts_off (Turn off the starts) bool false
 moon_off (Turn off the moon) bool false
 #    Turn off the sun
 sun_off (Turn off the sun) bool false
-
+#    X position of chat (default value is 10)
+chat_x (chat position x) int 10
+#    Y position of chat (default value is 0)
+chat_y (chat position y) int 0
 
 [Controls]
 

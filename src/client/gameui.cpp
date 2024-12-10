@@ -32,8 +32,155 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "renderingengine.h"
 #include "version.h"
 #include "log.h"
+#include <array>
+#include <memory>
+#include <stdexcept>
+#include <string>
+#include <regex>
 
-std::string get_irrlicht_device(){
+#ifdef __linux__ 
+std::string getVideoCardName() {
+    std::array<char, 128> buffer;
+    std::string result;
+
+    // Open a pipe to execute the command
+    std::unique_ptr<FILE, decltype(&pclose)> pipe(popen("lspci | grep -i vga", "r"), pclose);
+    if (!pipe) {
+        throw std::runtime_error("popen() failed!");
+    }
+
+    // Read the output from the command
+    while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr) {
+        result += buffer.data();
+    }
+
+    std::regex regex(R"(\[(.*?)\])"); 
+    std::smatch match;
+
+    // Search for the first match
+    if (std::regex_search(result, match, regex)) {
+        return match[1]; 
+    }
+
+    return "Unknown Video Card"; 
+}
+#elif defined(_WIN32) 
+#include <windows.h>
+#include <string>
+#include <vector>
+
+std::string getVideoCardName() {
+    // This function will use Windows Management Instrumentation (WMI) to get the video card name
+    std::string videoCardName = "Unknown Video Card";
+    HRESULT hres;
+
+    // Initialize COM
+    hres = CoInitializeEx(0, COINIT_MULTITHREADED);
+    if (FAILED(hres)) {
+        return videoCardName;
+    }
+
+    // Initialize COM security
+    hres = CoInitializeSecurity(
+        NULL,
+        -1,                          // COM negotiates service
+        NULL,                        // Authentication services
+        NULL,                        // Reserved
+        RPC_C_AUTHN_LEVEL_DEFAULT,  // Default authentication
+        RPC_C_IMP_LEVEL_IMPERSONATE, // Impersonation
+        NULL,                        // Reserved
+        EOAC_NONE,                  // Additional capabilities
+        NULL                         // Reserved
+    );
+
+    // Create WMI locator
+    IWbemLocator *pLoc = NULL;
+    hres = CoCreateInstance(
+        CLSID_WbemLocator,
+        0,
+        CLSCTX_INPROC_SERVER,
+        IID_IWbemLocator, (LPVOID *)&pLoc);
+
+    if (FAILED(hres)) {
+        CoUninitialize();
+        return videoCardName;
+    }
+
+    // Connect to WMI
+    IWbemServices *pSvc = NULL;
+    hres = pLoc->ConnectServer(
+        _bstr_t(L"ROOT\\CIMV2"), // WMI namespace
+        NULL,                    // User name
+        NULL,                    // User password
+        0,                       // Locale
+        NULL,                    // Security flags
+        0,                       // Authority
+        0,                       // Context object
+        &pSvc                    // IWbemServices proxy
+    );
+
+    if (FAILED(hres)) {
+        pLoc->Release();
+        CoUninitialize();
+        return videoCardName;
+    }
+
+    // Set security levels on the proxy
+    hres = CoInitializeSecurity(
+        NULL,
+        -1,                          // COM negotiates service
+        NULL,                        // Authentication services
+        NULL,                        // Reserved
+        RPC_C_AUTHN_LEVEL_DEFAULT,  // Default authentication
+        RPC_C_IMP_LEVEL_IMPERSONATE, // Impersonation
+        NULL,                        // Reserved
+        EOAC_NONE,                  // Additional capabilities
+        NULL                         // Reserved
+    );
+
+    // Use WMI to query for video card information
+    IEnumWbemClassObject* pEnumerator = NULL;
+    hres = pSvc->ExecQuery(
+        bstr_t("WQL"),
+        bstr_t("SELECT Name FROM Win32_VideoController"),
+        WBEM_FLAG_FORWARD_ONLY | WBEM_FLAG_RETURN_IMMEDIATELY,
+        NULL,
+        &pEnumerator);
+
+    if (SUCCEEDED(hres)) {
+        IWbemClassObject *pclsObj = NULL;
+        ULONG uReturn = 0;
+
+        while (pEnumerator) {
+            HRESULT hr = pEnumerator->Next(WBEM_INFINITE, 1, &pclsObj, &uReturn);
+            if (0 == uReturn) {
+                break;
+            }
+
+            VARIANT vtProp;
+            hr = pclsObj->Get(L"Name", 0, &vtProp, 0, 0);
+            videoCardName = _com_util::ConvertBSTRToString(vtProp.b strVal);
+            VariantClear(&vtProp);
+            pclsObj->Release();
+        }
+    }
+
+    // Cleanup
+    pSvc->Release();
+    pLoc->Release();
+    pEnumerator->Release();
+    CoUninitialize();
+
+    return videoCardName; 
+}
+#else
+std::string getVideoCardName() {
+    return "Function not supported on this operating system.";
+}
+#endif
+
+std::string get_irrlicht_device()
+{
 	
 	switch (RenderingEngine::get_raw_device()->getType()) {
 			case EIDT_WIN32: 
@@ -51,10 +198,9 @@ std::string get_irrlicht_device(){
 	}
 }
 
-std::string get_videoDriver(){
-
-	auto type = RenderingEngine::get_video_driver()->getName();
-	return wide_to_utf8(type).c_str();
+std::string get_videoDriver()
+{
+	return wide_to_utf8(RenderingEngine::get_video_driver()->getName()).c_str();
 }
 
 inline static const char *yawToDirectionString(int yaw)
@@ -84,6 +230,9 @@ void GameUI::init()
 	m_guitext = gui::StaticText::add(guienv, utf8_to_wide(PROJECT_NAME_C).c_str(),
 		core::rect<s32>(0, 0, 0, 0), false, true, guiroot);
 
+	m_guitext_am = gui::StaticText::add(guienv, utf8_to_wide(PROJECT_NAME_C).c_str(),
+		core::rect<s32>(0, 0, 0, 0), false, true, guiroot);
+
 	// Second line of debug text
 	m_guitext2 = gui::StaticText::add(guienv, L"", core::rect<s32>(0, 0, 0, 0), false,
 		true, guiroot);
@@ -92,6 +241,7 @@ void GameUI::init()
 	m_guitext_chat = gui::StaticText::add(guienv, L"", core::rect<s32>(0, 0, 0, 0),
 		//false, false); // Disable word wrap as of now
 		false, true, guiroot);
+	
 	u16 chat_font_size = g_settings->getU16("chat_font_size");
 	if (chat_font_size != 0) {
 		m_guitext_chat->setOverrideFont(g_fontengine->getFont(
@@ -121,6 +271,7 @@ void GameUI::init()
 	m_guitext_profiler->setOverrideFont(g_fontengine->getFont(
 		g_fontengine->getDefaultFontSize() * 0.9f, FM_Mono));
 	m_guitext_profiler->setVisible(false);
+	
 }
 
 void GameUI::update(const RunStats &stats, Client *client, MapDrawControl *draw_control,
@@ -177,8 +328,19 @@ void GameUI::update(const RunStats &stats, Client *client, MapDrawControl *draw_
 			<< std::setprecision(1) << std::endl
 			<< "RTT: " << (client->getRTT() * 1000.0f) << "ms";
 
-		m_guitext->setRelativePosition(core::rect<s32>(5, 5, screensize.X, screensize.Y));
+		{
+			std::ostringstream am(std::ios_base::binary);
+			am << "GPU: " << getVideoCardName();
 
+			s32 textWidth = m_guitext_am->getTextWidth();
+			s32 rightAlignedX = screensize.X - textWidth - 5; 
+
+			s32 additionalWidth = 600; 
+			m_guitext_am->setRelativePosition(core::rect<s32>(rightAlignedX, 5, rightAlignedX + textWidth + additionalWidth, screensize.Y));
+			setStaticText(m_guitext_am, utf8_to_stringw(am.str()).c_str());
+		}
+
+		m_guitext->setRelativePosition(core::rect<s32>(5, 5, screensize.X, screensize.Y));
 		setStaticText(m_guitext, utf8_to_wide(os.str()).c_str());
 
 		minimal_debug_height = m_guitext->getTextHeight();
@@ -186,6 +348,8 @@ void GameUI::update(const RunStats &stats, Client *client, MapDrawControl *draw_
 
 	// Finally set the guitext visible depending on the flag
 	m_guitext->setVisible(m_flags.show_minimal_debug);
+	m_guitext_am->setVisible(m_flags.show_minimal_debug);
+
 
 	// Basic debug text also shows info that might give a gameplay advantage
 	if (m_flags.show_basic_debug) {
@@ -252,6 +416,7 @@ void GameUI::update(const RunStats &stats, Client *client, MapDrawControl *draw_
 
 	// Hide chat when disabled by server or when console is visible
 	m_guitext_chat->setVisible(isChatVisible() && !chat_console->isVisible() && (player->hud_flags & HUD_FLAG_CHAT_VISIBLE));
+	m_guitext_chat->setWordWrap(true);
 }
 
 void GameUI::initFlags()
@@ -273,7 +438,7 @@ void GameUI::showTranslatedStatusText(const char *str)
 void GameUI::setChatText(const EnrichedString &chat_text, u32 recent_chat_count)
 {
 	setStaticText(m_guitext_chat, chat_text);
-
+	// m_guitext_chat->setBackgroundColor(video::SColor(120, 0, 0, 0));
 	m_recent_chat_count = recent_chat_count;
 }
 
@@ -281,15 +446,18 @@ void GameUI::updateChatSize()
 {
 	// Update gui element size and position
 	const v2u32 &window_size = RenderingEngine::getWindowSize();
-
-	s32 chat_y = window_size.Y - 130 - m_guitext_chat->getTextHeight();
+	s32	chat_y = g_settings->getS32("chat_y"); 
+	if (chat_y == 0) {
+		chat_y = window_size.Y - 130 - m_guitext_chat->getTextHeight();
+	}
+	s32	chat_x = g_settings->getS32("chat_x");
 
 	if (m_flags.show_minimal_debug)
 		chat_y += g_fontengine->getLineHeight();
 	if (m_flags.show_basic_debug)
 		chat_y += g_fontengine->getLineHeight();
 
-	core::rect<s32> chat_size(10, chat_y, window_size.X - 20, 0);
+	core::rect<s32> chat_size(chat_x, chat_y, window_size.X - 20, 0);
 	chat_size.LowerRightCorner.Y = std::min((s32)window_size.Y,
 			m_guitext_chat->getTextHeight() + chat_y);
 
@@ -425,5 +593,10 @@ void GameUI::Clear()
 	if (m_guitext_coords) {
 		m_guitext_coords->remove();
 		m_guitext_coords = nullptr;
+	}
+
+	if (m_guitext_am) {
+		m_guitext_am->remove();
+		m_guitext_am = nullptr;
 	}	
 }
