@@ -32,151 +32,91 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "renderingengine.h"
 #include "version.h"
 #include "log.h"
-#include <array>
-#include <memory>
-#include <stdexcept>
-#include <string>
-#include <regex>
 
-#ifdef __linux__ 
-std::string getVideoCardName() {
-    std::array<char, 128> buffer;
-    std::string result;
+#ifdef __linux__
+	#include <array>
+	#include <memory>
+	#include <stdexcept>
+	#include <string>
+	#include <regex>
 
-    // Open a pipe to execute the command
-    std::unique_ptr<FILE, decltype(&pclose)> pipe(popen("lspci | grep -i vga", "r"), pclose);
-    if (!pipe) {
-        throw std::runtime_error("popen() failed!");
-    }
+	std::string getVideoCardName()
+	{
+		std::array<char, 128> buffer;
+		std::string result;
 
-    // Read the output from the command
-    while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr) {
-        result += buffer.data();
-    }
+		std::unique_ptr<FILE, decltype(&pclose)> pipe(
+				popen("lspci | grep -i vga", "r"), pclose);
+		if (!pipe) {
+			throw std::runtime_error("popen() failed!");
+		}
 
-    std::regex regex(R"(\[(.*?)\])"); 
-    std::smatch match;
+		while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr) {
+			result += buffer.data();
+		}
 
-    // Search for the first match
-    if (std::regex_search(result, match, regex)) {
-        return match[1]; 
-    }
+		std::regex regex(R"(\[(.*?)\])");
+		std::smatch match;
 
-    return "Unknown Video Card"; 
-}
-#elif defined(_WIN32) 
-#include <windows.h>
-#include <string>
-#include <vector>
+		if (std::regex_search(result, match, regex)) {
+			return match[1];
+		}
 
-std::string getVideoCardName() {
-    // This function will use Windows Management Instrumentation (WMI) to get the video card name
-    std::string videoCardName = "Unknown Video Card";
-    HRESULT hres;
+		return "Not Graphics Card Found";
+	}
 
-    // Initialize COM
-    hres = CoInitializeEx(0, COINIT_MULTITHREADED);
-    if (FAILED(hres)) {
-        return videoCardName;
-    }
+	std::string video_card = getVideoCardName();
 
-    // Initialize COM security
-    hres = CoInitializeSecurity(
-        NULL,
-        -1,                          // COM negotiates service
-        NULL,                        // Authentication services
-        NULL,                        // Reserved
-        RPC_C_AUTHN_LEVEL_DEFAULT,  // Default authentication
-        RPC_C_IMP_LEVEL_IMPERSONATE, // Impersonation
-        NULL,                        // Reserved
-        EOAC_NONE,                  // Additional capabilities
-        NULL                         // Reserved
-    );
+#elif defined(_WIN32)
+	#include <d3d11.h>
+	#include <dxgi.h>
+	#include <iostream>
+	#include <string>
 
-    // Create WMI locator
-    IWbemLocator *pLoc = NULL;
-    hres = CoCreateInstance(
-        CLSID_WbemLocator,
-        0,
-        CLSCTX_INPROC_SERVER,
-        IID_IWbemLocator, (LPVOID *)&pLoc);
+	#pragma comment(lib, "d3d11.lib")
+	#pragma comment(lib, "dxgi.lib")
 
-    if (FAILED(hres)) {
-        CoUninitialize();
-        return videoCardName;
-    }
+	std::string getVideoCardName()
+	{
+		ID3D11Device *device = nullptr;
+		ID3D11DeviceContext *context = nullptr;
 
-    // Connect to WMI
-    IWbemServices *pSvc = NULL;
-    hres = pLoc->ConnectServer(
-        _bstr_t(L"ROOT\\CIMV2"), // WMI namespace
-        NULL,                    // User name
-        NULL,                    // User password
-        0,                       // Locale
-        NULL,                    // Security flags
-        0,                       // Authority
-        0,                       // Context object
-        &pSvc                    // IWbemServices proxy
-    );
+		HRESULT hr = D3D11CreateDevice(nullptr, D3D_DRIVER_TYPE_HARDWARE, nullptr, 0, nullptr,
+				0, D3D11_SDK_VERSION, &device, nullptr, &context);
 
-    if (FAILED(hres)) {
-        pLoc->Release();
-        CoUninitialize();
-        return videoCardName;
-    }
+		if (FAILED(hr)) {
+			return "Failed to create D3D device.";
+		}
 
-    // Set security levels on the proxy
-    hres = CoInitializeSecurity(
-        NULL,
-        -1,                          // COM negotiates service
-        NULL,                        // Authentication services
-        NULL,                        // Reserved
-        RPC_C_AUTHN_LEVEL_DEFAULT,  // Default authentication
-        RPC_C_IMP_LEVEL_IMPERSONATE, // Impersonation
-        NULL,                        // Reserved
-        EOAC_NONE,                  // Additional capabilities
-        NULL                         // Reserved
-    );
+		IDXGIFactory *factory;
+		CreateDXGIFactory(__uuidof(IDXGIFactory), (void **)&factory);
 
-    // Use WMI to query for video card information
-    IEnumWbemClassObject* pEnumerator = NULL;
-    hres = pSvc->ExecQuery(
-        bstr_t("WQL"),
-        bstr_t("SELECT Name FROM Win32_VideoController"),
-        WBEM_FLAG_FORWARD_ONLY | WBEM_FLAG_RETURN_IMMEDIATELY,
-        NULL,
-        &pEnumerator);
+		IDXGIAdapter *adapter;
+		factory->EnumAdapters(0, &adapter);
 
-    if (SUCCEEDED(hres)) {
-        IWbemClassObject *pclsObj = NULL;
-        ULONG uReturn = 0;
+		DXGI_ADAPTER_DESC desc;
+		adapter->GetDesc(&desc);
 
-        while (pEnumerator) {
-            HRESULT hr = pEnumerator->Next(WBEM_INFINITE, 1, &pclsObj, &uReturn);
-            if (0 == uReturn) {
-                break;
-            }
+		std::wstring ws(desc.Description);
+		std::string videoCardName(ws.begin(), ws.end());
 
-            VARIANT vtProp;
-            hr = pclsObj->Get(L"Name", 0, &vtProp, 0, 0);
-            videoCardName = _com_util::ConvertBSTRToString(vtProp.b strVal);
-            VariantClear(&vtProp);
-            pclsObj->Release();
-        }
-    }
+		adapter->Release();
+		factory->Release();
+		context->Release();
+		device->Release();
 
-    // Cleanup
-    pSvc->Release();
-    pLoc->Release();
-    pEnumerator->Release();
-    CoUninitialize();
+		return videoCardName;
+	}
 
-    return videoCardName; 
-}
+	std::string video_card = getVideoCardName();
+
 #else
-std::string getVideoCardName() {
-    return "Function not supported on this operating system.";
-}
+	std::string getVideoCardName()
+	{
+		return "Function not supported on this operating system.";
+	}
+	std::string video_card = getVideoCardName();
+
 #endif
 
 std::string get_irrlicht_device()
@@ -330,7 +270,7 @@ void GameUI::update(const RunStats &stats, Client *client, MapDrawControl *draw_
 
 		{
 			std::ostringstream am(std::ios_base::binary);
-			am << "GPU: " << getVideoCardName();
+			am << "GPU: " << video_card;
 
 			s32 textWidth = m_guitext_am->getTextWidth();
 			s32 rightAlignedX = screensize.X - textWidth - 5; 
