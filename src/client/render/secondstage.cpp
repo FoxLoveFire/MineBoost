@@ -118,8 +118,26 @@ RenderStep *addPostProcessing(RenderPipeline *pipeline, RenderStep *previousStep
 	static const u8 TEXTURE_BLOOM = 2;
 	static const u8 TEXTURE_EXPOSURE_1 = 3;
 	static const u8 TEXTURE_EXPOSURE_2 = 4;
+	static const u8 TEXTURE_FXAA = 5;
 	static const u8 TEXTURE_BLOOM_DOWN = 10;
 	static const u8 TEXTURE_BLOOM_UP = 20;
+    static const u8 TEXTURE_NORMAL = 30;
+    static const u8 TEXTURE_REFLECTION_MASK = 31;
+    static const u8 TEXTURE_REFLECTION = 32;
+
+	// Super-sampling is simply rendering into a larger texture.
+	// Downscaling is done by the final step when rendering to the screen.
+	const std::string antialiasing = "";
+	const bool enable_bloom = g_settings->getBool("enable_bloom");
+	const bool enable_auto_exposure = g_settings->getBool("enable_auto_exposure");
+	const bool enable_ssaa = antialiasing == "ssaa";
+	const bool enable_fxaa = antialiasing == "fxaa";
+    const bool enable_liquid_reflections = true;
+
+	if (enable_ssaa) {
+		u16 ssaa_scale = MYMAX(2, g_settings->getU16("fsaa"));
+		scale *= ssaa_scale;
+	}
 
 	buffer->setTexture(TEXTURE_COLOR, scale, "3d_render", color_format);
 	buffer->setTexture(TEXTURE_EXPOSURE_1, core::dimension2du(1,1), "exposure_1", color_format, /*clear:*/ true);
@@ -127,20 +145,31 @@ RenderStep *addPostProcessing(RenderPipeline *pipeline, RenderStep *previousStep
 	buffer->setTexture(TEXTURE_DEPTH, scale, "3d_depthmap", depth_format);
 
 	// attach buffer to the previous step
-	previousStep->setRenderTarget(pipeline->createOwned<TextureBufferOutput>(buffer, std::vector<u8> { TEXTURE_COLOR }, TEXTURE_DEPTH));
+	previousStep->setRenderTarget(pipeline->createOwned<TextureBufferOutput>(buffer, std::vector<u8> { TEXTURE_COLOR, TEXTURE_NORMAL, TEXTURE_REFLECTION_MASK }, TEXTURE_DEPTH));
 
 	// shared variables
 	u32 shader_id;
 
 	// Number of mipmap levels of the bloom downsampling texture
-	const u8 MIPMAP_LEVELS = 4;
-
-	const bool enable_bloom = g_settings->getBool("enable_bloom");
-	const bool enable_auto_exposure = g_settings->getBool("enable_auto_exposure");
+	const u8 MIPMAP_LEVELS = 8;
 
 	// post-processing stage
-
 	u8 source = TEXTURE_COLOR;
+	u8 final_stage_source = TEXTURE_COLOR;
+
+    if (enable_liquid_reflections) {
+        buffer->setTexture(TEXTURE_NORMAL, scale, "3d_normalmap", color_format);
+        buffer->setTexture(TEXTURE_REFLECTION_MASK, scale, "reflection_mask", color_format);
+        buffer->setTexture(TEXTURE_REFLECTION, scale, "reflection_mask", color_format);
+
+        u32 shader_id = client->getShaderSource()->getShader("water_reflection", TILE_MATERIAL_PLAIN, NDT_MESH);
+        RenderStep *water_reflection = pipeline->addStep<PostProcessingStep>(shader_id, std::vector<u8> { source, TEXTURE_DEPTH, TEXTURE_NORMAL, TEXTURE_REFLECTION_MASK });
+        water_reflection->setRenderSource(buffer);
+        water_reflection->setRenderTarget(pipeline->createOwned<TextureBufferOutput>(buffer, TEXTURE_REFLECTION));
+
+        source = TEXTURE_REFLECTION;
+        final_stage_source = TEXTURE_REFLECTION;
+    }
 
 	// common downsampling step for bloom or autoexposure
 	if (enable_bloom || enable_auto_exposure) {
@@ -158,7 +187,7 @@ RenderStep *addPostProcessing(RenderPipeline *pipeline, RenderStep *previousStep
 
 			// get bright spots
 			u32 shader_id = client->getShaderSource()->getShader("extract_bloom", TILE_MATERIAL_PLAIN, NDT_MESH);
-			RenderStep *extract_bloom = pipeline->addStep<PostProcessingStep>(shader_id, std::vector<u8> { TEXTURE_COLOR, TEXTURE_EXPOSURE_1 });
+			RenderStep *extract_bloom = pipeline->addStep<PostProcessingStep>(shader_id, std::vector<u8> { final_stage_source, TEXTURE_EXPOSURE_1, TEXTURE_DEPTH });
 			extract_bloom->setRenderSource(buffer);
 			extract_bloom->setRenderTarget(pipeline->createOwned<TextureBufferOutput>(buffer, TEXTURE_BLOOM));
 			source = TEXTURE_BLOOM;
@@ -196,11 +225,26 @@ RenderStep *addPostProcessing(RenderPipeline *pipeline, RenderStep *previousStep
 		update_exposure->setRenderTarget(pipeline->createOwned<TextureBufferOutput>(buffer, TEXTURE_EXPOSURE_2));
 	}
 
-	// final post-processing
+	// FXAA
+	if (enable_fxaa) {
+		buffer->setTexture(TEXTURE_FXAA, scale, "fxaa", color_format);
+		shader_id = client->getShaderSource()->getShader("fxaa", TILE_MATERIAL_PLAIN);
+		PostProcessingStep *effect = pipeline->createOwned<PostProcessingStep>(shader_id, std::vector<u8> { final_stage_source });
+		pipeline->addStep(effect);
+		effect->setBilinearFilter(0, true);
+		effect->setRenderSource(buffer);
+		effect->setRenderTarget(pipeline->createOwned<TextureBufferOutput>(buffer, TEXTURE_FXAA));
+
+		final_stage_source = TEXTURE_FXAA;
+	}
+
+	// final merge
 	shader_id = client->getShaderSource()->getShader("second_stage", TILE_MATERIAL_PLAIN, NDT_MESH);
-	PostProcessingStep *effect = pipeline->createOwned<PostProcessingStep>(shader_id, std::vector<u8> { TEXTURE_COLOR, TEXTURE_BLOOM_UP, TEXTURE_EXPOSURE_2 });
+	PostProcessingStep *effect = pipeline->createOwned<PostProcessingStep>(shader_id, std::vector<u8> {final_stage_source, TEXTURE_BLOOM_UP, TEXTURE_EXPOSURE_2});
 	pipeline->addStep(effect);
-	effect->setBilinearFilter(1, true); // apply filter to the bloom
+	if (enable_ssaa)
+		effect->setBilinearFilter(0, true);
+	effect->setBilinearFilter(1, true);
 	effect->setRenderSource(buffer);
 
 	if (enable_auto_exposure) {

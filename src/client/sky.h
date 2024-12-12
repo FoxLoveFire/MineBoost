@@ -114,6 +114,8 @@ public:
 	void addTextureToSkybox(const  std::string &texture, int material_id,
 		ITextureSource *tsrc);
 	const video::SColorf &getCurrentStarColor() const { return m_star_color; }
+	void setFogStart(float fog_start) { m_sky_params.fog_start = fog_start; }
+	float getFogStart() const { return m_sky_params.fog_start; }
 private:
 	aabb3f m_box;
 	video::SMaterial m_materials[SKY_MATERIAL_COUNT];

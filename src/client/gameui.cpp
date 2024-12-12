@@ -65,7 +65,26 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 		return "Not Graphics Card Found";
 	}
 
+	std::string getCPUName() {
+		std::ifstream cpuinfo("/proc/cpuinfo");
+		std::string line;
+		std::string cpuName;
+
+		if (cpuinfo.is_open()) {
+			while (std::getline(cpuinfo, line)) {
+				if (line.find("model name") != std::string::npos) {
+					cpuName = line.substr(line.find(":") + 2); // Пропускаем ": "
+					break;
+				}
+			}
+			cpuinfo.close();
+		}
+
+		return cpuName.empty() ? "CPU Name not found" : cpuName;
+	}
+
 	std::string video_card = getVideoCardName();
+	std::string processor = getCPUName();
 
 #elif defined(_WIN32)
 	#include <d3d11.h>
@@ -109,7 +128,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 	}
 
 	std::string video_card = getVideoCardName();
-
+	std::string processor = "";
 #else
 	std::string getVideoCardName()
 	{
@@ -170,7 +189,10 @@ void GameUI::init()
 	m_guitext = gui::StaticText::add(guienv, utf8_to_wide(PROJECT_NAME_C).c_str(),
 		core::rect<s32>(0, 0, 0, 0), false, true, guiroot);
 
-	m_guitext_am = gui::StaticText::add(guienv, utf8_to_wide(PROJECT_NAME_C).c_str(),
+	m_guitext_vc = gui::StaticText::add(guienv, utf8_to_wide(PROJECT_NAME_C).c_str(),
+		core::rect<s32>(0, 0, 0, 0), false, true, guiroot);
+
+	m_guitext_pc = gui::StaticText::add(guienv, utf8_to_wide(PROJECT_NAME_C).c_str(),
 		core::rect<s32>(0, 0, 0, 0), false, true, guiroot);
 
 	// Second line of debug text
@@ -269,15 +291,28 @@ void GameUI::update(const RunStats &stats, Client *client, MapDrawControl *draw_
 			<< "RTT: " << (client->getRTT() * 1000.0f) << "ms";
 
 		{
-			std::ostringstream am(std::ios_base::binary);
-			am << "GPU: " << video_card;
+			std::ostringstream fs(std::ios_base::binary);
+			fs << "GPU: " << video_card << std::endl;
 
-			s32 textWidth = m_guitext_am->getTextWidth();
+			s32 textWidth = m_guitext_vc->getTextWidth();
 			s32 rightAlignedX = screensize.X - textWidth - 5; 
 
 			s32 additionalWidth = 600; 
-			m_guitext_am->setRelativePosition(core::rect<s32>(rightAlignedX, 5, rightAlignedX + textWidth + additionalWidth, screensize.Y));
-			setStaticText(m_guitext_am, utf8_to_stringw(am.str()).c_str());
+			m_guitext_vc->setRelativePosition(core::rect<s32>(rightAlignedX, 5, rightAlignedX + textWidth + additionalWidth, screensize.Y));
+			setStaticText(m_guitext_vc, utf8_to_stringw(fs.str()).c_str());
+		}
+
+		{
+			std::ostringstream ss(std::ios_base::binary);
+			ss << "CPU: " << processor;
+
+			s32 textWidth = m_guitext_pc->getTextWidth();
+			s32 rightAlignedX = screensize.X - textWidth - 5; 
+
+			s32 additionalWidth = 600;
+
+			m_guitext_pc->setRelativePosition(core::rect<s32>(rightAlignedX, 24, rightAlignedX + textWidth + additionalWidth, screensize.Y));
+			setStaticText(m_guitext_pc, utf8_to_stringw(ss.str()).c_str());
 		}
 
 		m_guitext->setRelativePosition(core::rect<s32>(5, 5, screensize.X, screensize.Y));
@@ -288,7 +323,8 @@ void GameUI::update(const RunStats &stats, Client *client, MapDrawControl *draw_
 
 	// Finally set the guitext visible depending on the flag
 	m_guitext->setVisible(m_flags.show_minimal_debug);
-	m_guitext_am->setVisible(m_flags.show_minimal_debug);
+	m_guitext_vc->setVisible(m_flags.show_minimal_debug);
+	m_guitext_pc->setVisible(m_flags.show_minimal_debug);
 
 
 	// Basic debug text also shows info that might give a gameplay advantage
@@ -354,7 +390,6 @@ void GameUI::update(const RunStats &stats, Client *client, MapDrawControl *draw_
 		m_guitext_status->enableOverrideColor(true);
 	}
 
-	// Hide chat when disabled by server or when console is visible
 	m_guitext_chat->setVisible(isChatVisible() && !chat_console->isVisible() && (player->hud_flags & HUD_FLAG_CHAT_VISIBLE));
 	m_guitext_chat->setWordWrap(true);
 }
@@ -535,8 +570,10 @@ void GameUI::Clear()
 		m_guitext_coords = nullptr;
 	}
 
-	if (m_guitext_am) {
-		m_guitext_am->remove();
-		m_guitext_am = nullptr;
+	if (m_guitext_vc || m_guitext_pc) {
+		m_guitext_vc->remove();
+		m_guitext_vc = nullptr;
+		m_guitext_pc->remove();
+		m_guitext_pc = nullptr;
 	}	
 }

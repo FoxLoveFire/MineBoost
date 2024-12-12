@@ -8,6 +8,8 @@ struct ExposureParams {
 uniform sampler2D rendered;
 uniform sampler2D bloom;
 
+uniform vec2 texelSize0;
+
 uniform ExposureParams exposureParams;
 uniform lowp float bloomIntensity;
 uniform lowp float saturation;
@@ -73,17 +75,29 @@ vec3 applySaturation(vec3 color, float factor)
 	// Calculate the perceived luminosity from the RGB color.
 	// See also: https://www.w3.org/WAI/GL/wiki/Relative_luminance
 	float brightness = dot(color, vec3(0.2125, 0.7154, 0.0721));
-	return mix(vec3(brightness), color, factor);
+	return max(vec3(0.), mix(vec3(brightness), color, factor));
 }
 #endif
 
 void main(void)
 {
 	vec2 uv = varTexCoord.st;
+#ifdef ENABLE_SSAA
+	vec4 color = vec4(0.);
+	for (float dx = 1.; dx < SSAA_SCALE; dx += 2.)
+	for (float dy = 1.; dy < SSAA_SCALE; dy += 2.)
+		color += texture2D(rendered, uv + texelSize0 * vec2(dx, dy)).rgba;
+	color /= SSAA_SCALE * SSAA_SCALE / 4.;
+#else
 	vec4 color = texture2D(rendered, uv).rgba;
+#endif
 
 	// translate to linear colorspace (approximate)
 	color.rgb = pow(color.rgb, vec3(2.2));
+
+#if ENABLE_TONE_MAPPING
+	color.rgb = applySaturation(color.rgb, 1.25);
+#endif	
 
 #ifdef ENABLE_BLOOM_DEBUG
 	if (uv.x > 0.5 || uv.y > 0.5)

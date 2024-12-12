@@ -416,6 +416,7 @@ class GameGlobalShaderConstantSetter : public IShaderConstantSetter
 	bool m_fog_enabled;
 	CachedPixelShaderSetting<float, 4> m_sky_bg_color;
 	CachedPixelShaderSetting<float> m_fog_distance;
+	CachedPixelShaderSetting<float> m_fog_shading_parameter;
 	CachedVertexShaderSetting<float> m_animation_timer_vertex;
 	CachedPixelShaderSetting<float> m_animation_timer_pixel;
 	CachedVertexShaderSetting<float> m_animation_timer_delta_vertex;
@@ -427,11 +428,17 @@ class GameGlobalShaderConstantSetter : public IShaderConstantSetter
 	CachedPixelShaderSetting<float, 3> m_minimap_yaw;
 	CachedPixelShaderSetting<float, 3> m_camera_offset_pixel;
 	CachedPixelShaderSetting<float, 3> m_camera_offset_vertex;
+	CachedPixelShaderSetting<float, 3> m_camera_position_pixel;
+	CachedPixelShaderSetting<float, 16> m_camera_view_pixel;
+	CachedPixelShaderSetting<float, 16> m_camera_viewinv_pixel;
+	CachedPixelShaderSetting<float, 16> m_camera_viewproj_pixel;
+	CachedPixelShaderSetting<float, 16> m_camera_viewprojinv_pixel;
 	CachedPixelShaderSetting<SamplerLayer_t> m_texture0;
 	CachedPixelShaderSetting<SamplerLayer_t> m_texture1;
 	CachedPixelShaderSetting<SamplerLayer_t> m_texture2;
 	CachedPixelShaderSetting<SamplerLayer_t> m_texture3;
-	CachedPixelShaderSetting<float, 2> m_texel_size0;
+	CachedVertexShaderSetting<float, 2> m_texel_size0_vertex;
+	CachedPixelShaderSetting<float, 2> m_texel_size0_pixel;
 	std::array<float, 2> m_texel_size0_values;
 	CachedStructPixelShaderSetting<float, 7> m_exposure_params_pixel;
 	float m_user_exposure_compensation;
@@ -443,6 +450,12 @@ class GameGlobalShaderConstantSetter : public IShaderConstantSetter
 	CachedPixelShaderSetting<float> m_bloom_radius_pixel;
 	float m_bloom_radius;
 	CachedPixelShaderSetting<float> m_saturation_pixel;
+	CachedPixelShaderSetting<float, 3> m_sun_position_pixel;
+	CachedPixelShaderSetting<float> m_sun_brightness_pixel;
+	CachedPixelShaderSetting<float, 3> m_moon_position_pixel;
+	CachedPixelShaderSetting<float> m_moon_brightness_pixel;
+	CachedPixelShaderSetting<float> m_emission_pixel;
+	float emission;
 
 public:
 	void onSettingsChange(const std::string &name)
@@ -474,6 +487,7 @@ public:
 		m_fog_range(fog_range),
 		m_sky_bg_color("skyBgColor"),
 		m_fog_distance("fogDistance"),
+		m_fog_shading_parameter("fogShadingParameter"),
 		m_animation_timer_vertex("animationTimer"),
 		m_animation_timer_pixel("animationTimer"),
 		m_animation_timer_delta_vertex("animationTimerDelta"),
@@ -485,11 +499,17 @@ public:
 		m_minimap_yaw("yawVec"),
 		m_camera_offset_pixel("cameraOffset"),
 		m_camera_offset_vertex("cameraOffset"),
+        m_camera_position_pixel("cameraPosition"),
+        m_camera_view_pixel("mCameraView"),
+        m_camera_viewinv_pixel("mCameraViewInv"),
+        m_camera_viewproj_pixel("mCameraViewProj"),
+        m_camera_viewprojinv_pixel("mCameraViewProjInv"),
 		m_texture0("texture0"),
 		m_texture1("texture1"),
 		m_texture2("texture2"),
 		m_texture3("texture3"),
-		m_texel_size0("texelSize0"),
+		m_texel_size0_vertex("texelSize0"),
+		m_texel_size0_pixel("texelSize0"),
 		m_exposure_params_pixel("exposureParams",
 				std::array<const char*, 7> {
 						"luminanceMin", "luminanceMax", "exposureCorrection",
@@ -498,7 +518,12 @@ public:
 		m_bloom_intensity_pixel("bloomIntensity"),
 		m_bloom_strength_pixel("bloomStrength"),
 		m_bloom_radius_pixel("bloomRadius"),
-		m_saturation_pixel("saturation")
+		m_saturation_pixel("saturation"),
+		m_sun_position_pixel("sunPositionScreen"),
+		m_sun_brightness_pixel("sunBrightness"),
+		m_moon_position_pixel("moonPositionScreen"),
+		m_moon_brightness_pixel("moonBrightness"),
+		m_emission_pixel("emission")
 	{
 		g_settings->registerChangedCallback("enable_fog", settingsCallback, this);
 		g_settings->registerChangedCallback("exposure_compensation", settingsCallback, this);
@@ -538,7 +563,10 @@ public:
 		if (m_fog_enabled && !*m_force_fog_off)
 			fog_distance = *m_fog_range;
 
+		float fog_shading_parameter = 1.0 / ( 1.0 - m_sky->getFogStart());
+
 		m_fog_distance.set(&fog_distance, services);
+		m_fog_shading_parameter.set(&fog_shading_parameter, services);
 
 		u32 daynight_ratio = (float)m_client->getEnv().getDayNightRatio();
 		video::SColorf sunlight;
@@ -581,6 +609,28 @@ public:
 		m_camera_offset_pixel.set(camera_offset_array, services);
 		m_camera_offset_vertex.set(camera_offset_array, services);
 
+		v3f camera_position_vector = m_client->getCamera()->getPosition();
+		float camera_position[3] = {
+				camera_position_vector.X,
+				camera_position_vector.Y,
+				camera_position_vector.Z
+		};
+		m_camera_position_pixel.set(camera_position, services);
+
+        core::matrix4 camera_view = m_client->getCamera()->getCameraNode()->getViewMatrix();
+        m_camera_view_pixel.set(camera_view.pointer(), services);
+
+        core::matrix4 camera_viewinv;
+		camera_view.getInverse(camera_viewinv);
+        m_camera_viewinv_pixel.set(camera_viewinv.pointer(), services);
+
+        core::matrix4 camera_viewproj = m_client->getCamera()->getCameraNode()->getProjectionMatrix();
+		m_camera_viewproj_pixel.set(camera_viewproj.pointer(), services);
+
+		core::matrix4 camera_viewprojinv;
+		camera_viewproj.getInverse(camera_viewprojinv);
+		m_camera_viewprojinv_pixel.set(camera_viewprojinv.pointer(), services);
+
 		SamplerLayer_t tex_id;
 		tex_id = 0;
 		m_texture0.set(&tex_id, services);
@@ -591,7 +641,8 @@ public:
 		tex_id = 3;
 		m_texture3.set(&tex_id, services);
 
-		m_texel_size0.set(m_texel_size0_values.data(), services);
+		m_texel_size0_vertex.set(m_texel_size0_values.data(), services);
+		m_texel_size0_pixel.set(m_texel_size0_values.data(), services);
 
 		const AutoExposure &exposure_params = m_client->getEnv().getLocalPlayer()->getLighting().exposure;
 		std::array<float, 7> exposure_buffer = {
@@ -612,6 +663,54 @@ public:
 		}
 		float saturation = m_client->getEnv().getLocalPlayer()->getLighting().saturation;
 		m_saturation_pixel.set(&saturation, services);
+
+		// Map directional light to screen space
+		auto camera_node = m_client->getCamera()->getCameraNode();
+		core::matrix4 transform = camera_node->getProjectionMatrix();
+		transform *= camera_node->getViewMatrix();
+        
+        m_client->getCamera()->getPosition();
+
+		if (m_sky->getSunVisible()) {
+			v3f sun_position = camera_node->getAbsolutePosition() + 
+					10000. * m_sky->getSunDirection();
+			transform.transformVect(sun_position);
+			sun_position.normalize();
+
+			float sun_position_array[3] = { sun_position.X, sun_position.Y, sun_position.Z};
+			m_sun_position_pixel.set(sun_position_array, services);
+
+			float sun_brightness = rangelim(107.143f * m_sky->getSunDirection().dotProduct(v3f(0.f, 1.f, 0.f)), 0.f, 1.f);
+			m_sun_brightness_pixel.set(&sun_brightness, services);
+		}
+		else {
+			float sun_position_array[3] = { 0.f, 0.f, -1.f };
+			m_sun_position_pixel.set(sun_position_array, services);
+
+			float sun_brightness = 0.f;
+			m_sun_brightness_pixel.set(&sun_brightness, services);
+		}
+
+		if (m_sky->getMoonVisible()) {
+			v3f moon_position = camera_node->getAbsolutePosition() + 
+					10000. * m_sky->getMoonDirection();
+			transform.transformVect(moon_position);
+			moon_position.normalize();
+
+			float moon_position_array[3] = { moon_position.X, moon_position.Y, moon_position.Z};
+			m_moon_position_pixel.set(moon_position_array, services);
+
+			float moon_brightness = rangelim(107.143f * m_sky->getMoonDirection().dotProduct(v3f(0.f, 1.f, 0.f)), 0.f, 1.f);
+			m_moon_brightness_pixel.set(&moon_brightness, services);
+		}
+		else {
+			float moon_position_array[3] = { 0.f, 0.f, -1.f };
+			m_moon_position_pixel.set(moon_position_array, services);
+
+			float moon_brightness = 0.f;
+			m_moon_brightness_pixel.set(&moon_brightness, services);
+		}
+		m_emission_pixel.set(&emission, services);
 	}
 
 	void onSetMaterial(const video::SMaterial &material)
@@ -626,8 +725,10 @@ public:
 			m_texel_size0_values[0] = 0.f;
 			m_texel_size0_values[1] = 0.f;
 		}
+		emission = material.Shininess;
 	}
 };
+
 
 
 class GameGlobalShaderConstantSetterFactory : public IShaderConstantSetterFactory

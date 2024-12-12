@@ -67,7 +67,8 @@ public:
 	void cleanupMeshCache();
 
 	void removeMesh(const scene::IMesh* mesh);
-
+	
+	void screensaver(irr::IrrlichtDevice *m_device, video::IVideoDriver* driver);
 	/**
 	 * This takes 3d_mode into account - side-by-side will return a
 	 * halved horizontal size.
