@@ -34,6 +34,10 @@ struct VideoDriverInfo {
 	std::string friendly_name;
 };
 
+#ifdef defined(_WIN32)
+	#include <direct.h>  
+#endif
+
 class ITextureSource;
 class Camera;
 class Client;
