@@ -53,6 +53,35 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include <winuser.h>
 #endif
 
+void RenderingEngine::screensaver(irr::IrrlichtDevice *m_device, video::IVideoDriver* driver)
+{
+	auto start_time = std::chrono::steady_clock::now();
+	m_device->setWindowCaption(L"MineBoost Loading...");
+	char cwd[1024];
+	getcwd(cwd, sizeof(cwd));
+	std::string texturePath = std::string(cwd) + "/src/client/images/screensaver.png";
+	video::ITexture* texture = driver->getTexture(texturePath.c_str());
+    core::dimension2d<u32> screensize = driver->getScreenSize();
+    core::dimension2d<u32> bg_size = texture->getSize();
+	
+    while (true) {
+        auto current_time = std::chrono::steady_clock::now();
+        auto elapsed_time = std::chrono::duration_cast<std::chrono::seconds>(current_time - start_time).count();
+        if (elapsed_time >= 2) {
+            break; 
+        }
+        m_device->run();
+        driver->beginScene(true, true, video::SColor(255, 255, 255, 255));
+	    draw2DImageFilterScaled(driver, texture,
+            core::rect<s32>(0, 0,
+                bg_size.Width + (screensize.Width - bg_size.Width),
+                bg_size.Height + (screensize.Height - bg_size.Height)),
+            core::rect<s32>(0, 0, bg_size.Width, bg_size.Height),
+            0, 0, true);
+        driver->endScene();
+    }
+}
+
 RenderingEngine *RenderingEngine::s_singleton = nullptr;
 const video::SColor RenderingEngine::MENU_SKY_COLOR = video::SColor(255, 140, 186, 250);
 const float RenderingEngine::BASE_BLOOM_STRENGTH = 1.0f;
@@ -147,6 +176,8 @@ RenderingEngine::RenderingEngine(IEventReceiver *receiver)
 
 	s_singleton = this;
 
+	screensaver(m_device, driver);
+	
 	auto skin = createSkin(m_device->getGUIEnvironment(),
 			gui::EGST_WINDOWS_METALLIC, driver);
 	m_device->getGUIEnvironment()->setSkin(skin);
