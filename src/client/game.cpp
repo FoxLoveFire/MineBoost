@@ -4023,7 +4023,7 @@ void Game::updateFrame(ProfilerGraph *graph, RunStats *stats, f32 dtime,
 	sky->update(time_of_day_smooth, time_brightness, direct_brightness,
 			sunlight_seen, camera->getCameraMode(), player->getYaw(),
 			player->getPitch());
-
+	
 	/*
 		Update clouds
 	*/
@@ -4210,9 +4210,6 @@ void Game::updateFrame(ProfilerGraph *graph, RunStats *stats, f32 dtime,
 	if (m_game_ui->m_flags.show_profiler_graph)
 		graph->draw(10, screensize.Y - 10, driver, g_fontengine->getFont());
 
-	
-	
-	
 	if (!gui_chat_console->isOpen()) {
 		if (m_game_ui->m_flags.render_menu)
 			render_menu->draw(driver);

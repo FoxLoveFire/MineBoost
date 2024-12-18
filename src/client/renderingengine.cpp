@@ -65,10 +65,13 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 	{
 		auto start_time = std::chrono::steady_clock::now();
 		m_device->setWindowCaption(L"MineBoost Loading...");
+		char cwd[1024];
+		getcwd(cwd, sizeof(cwd));
+		std::string texturePath = std::string(cwd) + "/src/client/images/screensaver.png";
 		video::ITexture *texture = driver->getTexture(texturePath.c_str());
 
 		if (texture == nullptr) {
-			std::cout << "Error" << std::endl;
+			std::cout << "[ERORR]: Cloud not load screensaver.png" << std::endl;
 		}
 		core::dimension2d<u32> screensize = driver->getScreenSize();
 		core::dimension2d<u32> bg_size = texture->getSize();
