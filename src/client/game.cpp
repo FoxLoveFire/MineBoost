@@ -75,6 +75,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "hud.h"
 #include "clientdynamicinfo.h"
 #include "chat.h"
+#include "FastMenu.h"
 
 #if USE_SOUND
 	#include "client/sound_openal.h"
@@ -951,13 +952,13 @@ private:
 
 	std::unique_ptr<GameUI> m_game_ui;
 	GUIChatConsole *gui_chat_console = nullptr; // Free using ->Drop()
+	FastMenu *fast_menu = nullptr; // Free using ->Drop()
 	MapDrawControl *draw_control = nullptr;
 	Camera *camera = nullptr;
 	Clouds *clouds = nullptr;	                  // Free using ->Drop()
 	Sky *sky = nullptr;                         // Free using ->Drop()
 	Hud *hud = nullptr;
 	Minimap *mapper = nullptr;
-	RenderMenu *render_menu = nullptr;
 
 	// Map server hud ids to client hud ids
 	std::unordered_map<u32, u32> m_hud_server_to_client;
@@ -1303,10 +1304,11 @@ void Game::shutdown()
 	if (gui_chat_console)
 		 gui_chat_console->drop();
 
+	if (fast_menu) 
+		fast_menu->drop();
+
 	if (sky)
 		sky->drop();
-	if (render_menu)
-		delete render_menu;
 
 	/* cleanup menus */
 	while (g_menumgr.menuCount() > 0) {
@@ -1561,13 +1563,12 @@ bool Game::initGui()
 		errorstream << *error_message << std::endl;
 		return false;
 	}
-	
-	render_menu = new RenderMenu(client);
 
-	if (!render_menu){
+	fast_menu = new FastMenu(guienv, guienv->getRootGUIElement(), 4, &g_menumgr, client);
+
+	if (!fast_menu) { 
 		*error_message = "Could not allocate memory for cheat menu";
 		errorstream<<*error_message <<std::endl;
-		return false;
 	}
 
 #ifdef HAVE_TOUCHSCREENGUI
@@ -2030,18 +2031,6 @@ void Game::processUserInput(f32 dtime)
 
 void Game::processKeyInput()
 {
-	if (wasKeyDown(KeyType::SELECT_UP)) {
-		render_menu->selectUp();
-	} else if (wasKeyDown(KeyType::SELECT_DOWN)) {
-		render_menu->selectDown();
-	} else if (wasKeyDown(KeyType::SELECT_LEFT)) {
-		render_menu->selectLeft();
-	} else if (wasKeyDown(KeyType::SELECT_RIGHT)) {
-		render_menu->selectRight();
-	} else if (wasKeyDown(KeyType::SELECT_CONFIRM)) {
-		render_menu->selectConfirm();
-	}
-
 	if (wasKeyDown(KeyType::DROP)) {
 		dropSelectedItem(isKeyDown(KeyType::SNEAK));
 	} else if (wasKeyDown(KeyType::AUTOFORWARD)) {
@@ -2129,7 +2118,7 @@ void Game::processKeyInput()
 	} else if (wasKeyDown(KeyType::TOGGLE_FOG)) {
 		toggleFog();
 	} else if (wasKeyDown(KeyType::TOGGLE_RENDER_MENU)) {
-		m_game_ui->toggleRenderMenu();
+		fast_menu->create();
 	} else if (wasKeyDown(KeyType::TOGGLE_UPDATE_CAMERA)) {
 		toggleUpdateCamera();
 	} else if (wasKeyDown(KeyType::TOGGLE_DEBUG)) {
@@ -2486,7 +2475,6 @@ void Game::toggleDebug()
 		m_game_ui->m_flags.show_profiler_graph = false;
 		draw_control->show_wireframe = false;
 		m_game_ui->showTranslatedStatusText("Debug info shown");
-		m_game_ui->m_flags.render_menu = false;
 	} else if (!m_game_ui->m_flags.show_profiler_graph && !draw_control->show_wireframe) {
 		if (has_basic_debug)
 			m_game_ui->m_flags.show_basic_debug = true;
@@ -2612,7 +2600,7 @@ void Game::updateCameraDirection(CameraOrientation *cam, float dtime)
 
 		m_first_loop_after_window_activation = true;
 
-	}
+}
 }
 
 // Get the factor to multiply with sensitivity to get the same mouse/joystick
@@ -4210,12 +4198,10 @@ void Game::updateFrame(ProfilerGraph *graph, RunStats *stats, f32 dtime,
 	if (m_game_ui->m_flags.show_profiler_graph)
 		graph->draw(10, screensize.Y - 10, driver, g_fontengine->getFont());
 
-	if (!gui_chat_console->isOpen()) {
-		if (m_game_ui->m_flags.render_menu)
-			render_menu->draw(driver);
-		if (g_settings->getBool("function_hud"))
-			render_menu->drawHUD(driver, dtime);
-	}
+	// if (!gui_chat_console->isOpen()) {
+	// 	if (g_settings->getBool("function_hud"))
+	// 		render_menu->drawHUD(driver, dtime);
+	// }
 	/*
 		Damage flash
 	*/
@@ -4236,7 +4222,6 @@ void Game::updateFrame(ProfilerGraph *graph, RunStats *stats, f32 dtime,
 
 	stats->drawtime = tt_draw.stop(true);
 	g_profiler->graphAdd("Draw scene [us]", stats->drawtime);
-	g_profiler->avg("WeightOfRenderMenu [mb]", sizeof(render_menu));
 	g_profiler->avg("WeightOfSky [mb]", sizeof(sky));
 	g_profiler->avg("Game::updateFrame(): update frame [ms]", tt_update.stop(true));
 }
@@ -4529,7 +4514,7 @@ void Game::showPauseMenu()
 			sound_manager.get());
 	formspec->setFocus("btn_continue");
 	// game will be paused in next step, if in singleplayer (see m_is_paused)
-	formspec->doPause = true;
+	formspec->doPause = true;	
 }
 
 /****************************************************************************/

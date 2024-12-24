@@ -82,6 +82,7 @@ public:
 		QUICKTUNE_PREV,
 		QUICKTUNE_INC,
 		QUICKTUNE_DEC,
+		FREE_CURSOR,
 
 		// hotbar
 		SLOT_1,

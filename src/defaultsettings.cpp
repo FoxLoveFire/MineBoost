@@ -316,6 +316,8 @@ void set_default_settings()
 	settings->setDefault("night", "false");
 	settings->setDefault("show_coords", "false");
 
+	settings->setDefault("free_cursor", "KEY_KEY_X");
+
 	settings->setDefault("chat_x", "10");
 	settings->setDefault("chat_y", "0");
 

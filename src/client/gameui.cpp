@@ -449,17 +449,6 @@ void GameUI::toggleChat(Client *client)
 	}
 
 }
-void GameUI::toggleRenderMenu()
-{
-	m_flags.render_menu = !m_flags.render_menu;
-	if (m_flags.render_menu){
-		showTranslatedStatusText("Fast Menu shown");
-		m_flags.show_minimal_debug = false;
-		m_flags.show_basic_debug = false;
-	} else {
-		showTranslatedStatusText("Fast Menu hidden");
-	}
-}
 
 void GameUI::toggleHud()
 {

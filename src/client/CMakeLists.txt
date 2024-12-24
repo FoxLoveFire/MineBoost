@@ -44,7 +44,7 @@ set(client_SRCS
 	${CMAKE_CURRENT_SOURCE_DIR}/gameui.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/guiscalingfilter.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/hud.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/fast_menu.cpp									
+	${CMAKE_CURRENT_SOURCE_DIR}/FastMenu.cpp							
 	${CMAKE_CURRENT_SOURCE_DIR}/imagefilters.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/inputhandler.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/joystick_controller.cpp
